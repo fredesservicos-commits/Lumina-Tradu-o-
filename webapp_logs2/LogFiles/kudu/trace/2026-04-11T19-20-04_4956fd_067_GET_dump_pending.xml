@@ -1,0 +1,4 @@
+<step title="Incoming Request" date="2026-04-11T19:20:04.390" instance="4956fd" url="/dump" method="GET" type="request" pid="833,1,19" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="identity" Authorization="Bea..." x-ms-client-request-id="6b777052-35db-11f1-95da-0005165ecf70" X-ARR-LOG-ID="6b777052-35db-11f1-95da-0005165ecf70" CLIENT-IP="38.210.181.118:16836" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/dump" X-Client-IP="38.210.181.118" X-Client-Port="16836" >
+  <step title="Cleanup Xml Logs" date="2026-04-11T19:20:04.392" >
+    <step title="Cleanup Infos" date="2026-04-11T19:20:04.400" totalFiles="250" totalCleanup="90" /><!-- duration: 3ms -->
+  </step><!-- duration: 12ms -->

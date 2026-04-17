@@ -1,0 +1,10 @@
+[
+  {
+    "name": "VITE_AZURE_STORAGE_INPUT_URL",
+    "value": "https://applumina.blob.core.windows.net/entradalumina?sv=2025-11-05&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2032-12-31T04:34:10Z&st=2026-04-10T20:19:10Z&spr=https&sig=M60/IEn%2BaQJCcL4cZf6xHVp2a1SDUj0zj05%2BmERDRaQ="
+  },
+  {
+    "name": "VITE_AZURE_STORAGE_OUTPUT_URL",
+    "value": "https://applumina.blob.core.windows.net/saidalumina?sv=2025-11-05&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2032-12-31T04:34:10Z&st=2026-04-10T20:19:10Z&spr=https&sig=M60/IEn%2BaQJCcL4cZf6xHVp2a1SDUj0zj05%2BmERDRaQ="
+  }
+]

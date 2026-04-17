@@ -1,0 +1,17 @@
+<step title="Incoming Request" date="2026-04-11T21:52:43.832" instance="4956fd" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="831,1,5" Accept="*/*" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Content-Length="459056" x-ms-client-request-id="beb38844-35f0-11f1-aaaa-0005165ecf70" x-ms-artifact-checksum="26a1a3ea3349e06c60503d95162a6e17def7a321b1986eaabdc961c4d68f31a5" X-ARR-LOG-ID="beb38844-35f0-11f1-aaaa-0005165ecf70" CLIENT-IP="38.210.181.118:17138" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" X-Client-IP="38.210.181.118" X-Client-Port="17138" >
+  <step title="ZipPushDeploy" date="2026-04-11T21:52:45.834" >
+    <step title="ZipDeploy. Extract zip. Remote build." date="2026-04-11T21:52:45.875" /><!-- duration: 9ms -->
+    <step title="None repository commit" date="2026-04-11T21:52:45.913" >
+      <step title="Commit id: 76766589-03df-4cfd-966e-d5e64377c509" date="2026-04-11T21:52:45.923" Message="N/A" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 2ms -->
+    </step><!-- duration: 21ms -->
+    <step title="Starting PushDeployAsync" date="2026-04-11T21:52:45.944" /><!-- duration: 9ms -->
+    <step title="Writing artifact to /tmp/zipdeploy/fdd965ad-8937-424f-a0a2-783f5dc0b609.zip" date="2026-04-11T21:52:46.035" >
+      <step title="Writing multipart request body to /tmp/zipdeploy/fdd965ad-8937-424f-a0a2-783f5dc0b609.zip" date="2026-04-11T21:52:46.065" /><!-- duration: 10ms -->
+    </step><!-- duration: 273ms -->
+    <step title="Start deployment in the background" date="2026-04-11T21:52:46.358" >
+      <step title="Acquiring Deployment Lock" date="2026-04-11T21:52:46.447" /><!-- duration: 11ms -->
+      <step title="Acquired Deployment Lock" date="2026-04-11T21:52:46.891" /><!-- duration: 27ms -->
+    </step><!-- duration: 880ms -->
+  </step><!-- duration: 1453ms -->
+  <step title="Outgoing response" date="2026-04-11T21:52:47.436" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 11ms -->
+</step><!-- duration: 3635ms -->

@@ -1,0 +1,16 @@
+<step title="Incoming Request" date="2026-04-11T02:09:06.542" instance="77ceac" url="/api/publish?type=zip&amp;async=True" method="POST" type="request" pid="833,1,7" Accept="*/*" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Cookie="ARRAffinity=77ceac6697dc14c86d552cce2c04c3de13bcb5e02d895b7f2a6a3317cdedec2d; ARRAffinitySameSite=77ceac6697dc14c86d552cce2c04c3de13bcb5e02d895b7f2a6a3317cdedec2d" Content-Length="469776" x-ms-client-request-id="5f945c82-354b-11f1-b454-0005165ecf70" x-ms-artifact-checksum="bea0b4d04d4cb4e4295b60080335d8a8aff2e21bd8682b43b8cf1aa9b96f630f" X-ARR-LOG-ID="5f945c82-354b-11f1-b454-0005165ecf70" CLIENT-IP="38.210.181.118:15331" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/publish?type=zip&amp;async=True" X-Client-IP="38.210.181.118" X-Client-Port="15331" >
+  <step title="OneDeploy" date="2026-04-11T02:09:06.634" >
+    <step title="None repository commit" date="2026-04-11T02:09:06.657" >
+      <step title="Commit id: e6121744-34a5-4ddb-a445-8583f085db95" date="2026-04-11T02:09:06.661" Message="N/A" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 3ms -->
+    </step><!-- duration: 11ms -->
+    <step title="Starting PushDeployAsync" date="2026-04-11T02:09:06.671" /><!-- duration: 3ms -->
+    <step title="Writing artifact to /tmp/zipdeploy/4cadfce3-0b77-4757-afc2-9fe3cf4b9fc8.zip" date="2026-04-11T02:09:06.698" >
+      <step title="Writing multipart request body to /tmp/zipdeploy/4cadfce3-0b77-4757-afc2-9fe3cf4b9fc8.zip" date="2026-04-11T02:09:06.702" /><!-- duration: 12ms -->
+    </step><!-- duration: 537ms -->
+    <step title="Start deployment in the background" date="2026-04-11T02:09:07.245" >
+      <step title="Acquiring Deployment Lock" date="2026-04-11T02:09:07.295" /><!-- duration: 4ms -->
+      <step title="Acquired Deployment Lock" date="2026-04-11T02:09:07.345" /><!-- duration: 3ms -->
+    </step><!-- duration: 224ms -->
+  </step><!-- duration: 845ms -->
+  <step title="Outgoing response" date="2026-04-11T02:09:07.490" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 4ms -->
+</step><!-- duration: 955ms -->

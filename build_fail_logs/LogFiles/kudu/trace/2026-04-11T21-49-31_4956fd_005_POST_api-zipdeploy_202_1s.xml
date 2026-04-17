@@ -1,0 +1,18 @@
+<step title="Incoming Request" date="2026-04-11T21:49:31.047" instance="4956fd" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="833,1,22" Accept="*/*" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Content-Length="459056" x-ms-client-request-id="4c8f122f-35f0-11f1-9a84-0005165ecf70" x-ms-artifact-checksum="26a1a3ea3349e06c60503d95162a6e17def7a321b1986eaabdc961c4d68f31a5" X-ARR-LOG-ID="4c8f122f-35f0-11f1-9a84-0005165ecf70" CLIENT-IP="38.210.181.118:16249" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" X-Client-IP="38.210.181.118" X-Client-Port="16249" >
+  <step title="Cleanup Xml Logs" date="2026-04-11T21:49:31.066" >
+    <step title="Cleanup Infos" date="2026-04-11T21:49:31.087" totalFiles="339" totalCleanup="179" /><!-- duration: 19ms -->
+  </step><!-- duration: 42ms -->
+  <step title="ZipPushDeploy" date="2026-04-11T21:49:31.207" >
+    <step title="ZipDeploy. Run from package." date="2026-04-11T21:49:31.218" /><!-- duration: 9ms -->
+    <step title="Starting PushDeployAsync" date="2026-04-11T21:49:31.237" /><!-- duration: 9ms -->
+    <step title="WEBSITE_RUN_FROM_PACKAGE is set to 1. Writing zip to SitePackagesPath" date="2026-04-11T21:49:31.265" /><!-- duration: 11ms -->
+    <step title="Copying zip to SitePackages /home/data/SitePackages/20260411214931.zip from request body" date="2026-04-11T21:49:31.297" /><!-- duration: 20ms -->
+    <step title="Writing multipart request body to /home/data/SitePackages/20260411214931.zip" date="2026-04-11T21:49:31.327" /><!-- duration: 11ms -->
+    <step title="Deleting outdated zip file /home/data/SitePackages/20260411113957.zip" date="2026-04-11T21:49:31.549" /><!-- duration: 18ms -->
+    <step title="Start deployment in the background" date="2026-04-11T21:49:31.597" >
+      <step title="Acquiring Deployment Lock" date="2026-04-11T21:49:31.687" /><!-- duration: 12ms -->
+      <step title="Acquired Deployment Lock" date="2026-04-11T21:49:31.857" /><!-- duration: 12ms -->
+    </step><!-- duration: 414ms -->
+  </step><!-- duration: 862ms -->
+  <step title="Outgoing response" date="2026-04-11T21:49:32.088" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 2ms -->
+</step><!-- duration: 1052ms -->

@@ -1,0 +1,9 @@
+<step title="Incoming Request" date="2026-04-11T00:09:34.521" instance="77ceac" url="/api/deployments/latest" method="GET" type="request" pid="834,1,22" Accept="*/*" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." x-ms-client-request-id="a394acae-353a-11f1-bec0-0005165ecf70" X-ARR-LOG-ID="a394acae-353a-11f1-bec0-0005165ecf70" CLIENT-IP="38.210.181.118:15572" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/deployments/latest" X-Client-IP="38.210.181.118" X-Client-Port="15572" >
+  <step title="Cleanup Xml Logs" date="2026-04-11T00:09:34.525" /><!-- duration: 32ms -->
+  <step title="DeploymentService.GetResult" date="2026-04-11T00:09:34.701" >
+    <step title="DeploymentService.GetLatestDeployment" date="2026-04-11T00:09:34.719" >
+      <step title="DeploymentManager.GetResults" date="2026-04-11T00:09:34.739" /><!-- duration: 701ms -->
+    </step><!-- duration: 739ms -->
+  </step><!-- duration: 774ms -->
+  <step title="Outgoing response" date="2026-04-11T00:09:35.660" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 20ms -->
+</step><!-- duration: 1180ms -->

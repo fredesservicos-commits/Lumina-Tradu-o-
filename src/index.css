@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #8B5CF6;
+  --color-primary-glow: rgba(139, 92, 246, 0.4);
+  --color-accent: #6EE7B7;
+  --color-dark: #0F172A;
+  --color-glass: rgba(255, 255, 255, 0.04);
+}
+
+:root {
+  --glow-strong: 0 0 30px rgba(139, 92, 246, 0.3);
+  --glow-soft: 0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+body {
+  background-color: var(--color-dark);
+  color: #E2E8F0;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+/* --- Tactile Noise Overlay --- */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.03;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* --- Animated Orbital Mesh Background --- */
+.mesh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: #0F172A;
+  overflow: hidden;
+}
+
+.mesh-bg::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.2) 0%, transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(110, 231, 183, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 40% 80%, rgba(216, 180, 254, 0.18) 0%, transparent 40%);
+  filter: blur(80px);
+  animation: orbit 40s linear infinite;
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* --- Refined Glassmorphism --- */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(139, 92, 246, 0.3);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), var(--glow-soft);
+}
+
+/* --- High-Tech Utilities --- */
+.text-gradient {
+  background: linear-gradient(135deg, #FFF 30%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-border {
+  position: relative;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(139, 92, 246, 0.2), rgba(110, 231, 183, 0.1));
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.gradient-border-content {
+  background: #111827;
+  border-radius: 23px;
+  height: 100%;
+  width: 100%;
+}
+
+.scanner-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  box-shadow: 0 0 15px var(--color-primary);
+  animation: scan 3s linear infinite;
+  opacity: 0;
+}
+
+@keyframes scan {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.group:hover .scanner-line {
+  opacity: 0.5;
+}
+
+/* --- Scrollbar Customization --- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.4);
+}
+
+/* --- Thematic Login Extras --- */
+.float-slow {
+  animation: float 15s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.1; }
+  50% { transform: translateY(-30px) rotate(15deg); opacity: 0.2; }
+}
+
+.mask-fade-edges {
+  mask-image: radial-gradient(circle, black 30%, transparent 80%);
+}
+
+@keyframes text-shimmer {
+  0% { opacity: 0; transform: translateY(5px); filter: blur(4px); }
+  100% { opacity: 0.7; transform: translateY(0); filter: blur(0px); }
+}
+
+.animate-shimmer {
+  animation: text-shimmer 0.8s ease-out forwards;
+}
+
+/* --- Atmosphere v4.2 --- */
+.slow-drift {
+  animation: drift 60s linear infinite;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0) rotate(0deg); }
+  to { transform: translate(100px, 100px) rotate(5deg); }
+}
+
+.neural-pulse {
+  animation: neural-glow 4s ease-in-out infinite;
+}
+
+@keyframes neural-glow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.5); }
+}
+
+.text-outline-subtle {
+  color: rgba(139, 92, 246, 0.12); /* Slightly stronger primary fill */
+  -webkit-text-stroke: 1.5px rgba(139, 92, 246, 0.3); /* Stronger violet stroke */
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,19 @@
+<step title="Incoming Request" date="2026-04-11T21:04:06.182" instance="4956fd" url="/api/publish?type=zip&amp;async=True" method="POST" type="request" pid="837,1,5" Accept="*/*" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Cookie="ARRAffinity=4956fd0f71e6a2c01e79df39cf93832dc1b88322e9676900fc844a8843ac6026; ARRAffinitySameSite=4956fd0f71e6a2c01e79df39cf93832dc1b88322e9676900fc844a8843ac6026" Content-Length="141965149" x-ms-client-request-id="df1fd739-35e9-11f1-94f6-0005165ecf70" x-ms-artifact-checksum="4588e19c2832ef8da07066e7f8ce5c26445bfbeea4e2b757f0db1e854da15540" X-ARR-LOG-ID="df1fd739-35e9-11f1-94f6-0005165ecf70" CLIENT-IP="38.210.181.118:16365" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/publish?type=zip&amp;async=True" X-Client-IP="38.210.181.118" X-Client-Port="16365" >
+  <step title="Cleanup Xml Logs" date="2026-04-11T21:04:06.199" >
+    <step title="Cleanup Infos" date="2026-04-11T21:04:06.206" totalFiles="331" totalCleanup="171" /><!-- duration: 8ms -->
+  </step><!-- duration: 16ms -->
+  <step title="OneDeploy" date="2026-04-11T21:04:06.321" >
+    <step title="None repository commit" date="2026-04-11T21:04:06.331" >
+      <step title="Commit id: e2242c6b-895c-48ed-bb47-27a3d19f405a" date="2026-04-11T21:04:06.333" Message="N/A" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 2ms -->
+    </step><!-- duration: 5ms -->
+    <step title="Starting PushDeployAsync" date="2026-04-11T21:04:06.339" /><!-- duration: 4ms -->
+    <step title="WEBSITE_RUN_FROM_PACKAGE is set to 1. Writing zip to SitePackagesPath" date="2026-04-11T21:04:06.361" /><!-- duration: 3ms -->
+    <step title="Copying zip to SitePackages /home/data/SitePackages/20260411210406.zip from request body" date="2026-04-11T21:04:06.373" /><!-- duration: 10ms -->
+    <step title="Writing multipart request body to /home/data/SitePackages/20260411210406.zip" date="2026-04-11T21:04:06.523" /><!-- duration: 12ms -->
+    <step title="Start deployment in the background" date="2026-04-11T21:07:33.468" >
+      <step title="Acquiring Deployment Lock" date="2026-04-11T21:07:33.515" /><!-- duration: 3ms -->
+      <step title="Acquired Deployment Lock" date="2026-04-11T21:07:33.595" /><!-- duration: 2ms -->
+    </step><!-- duration: 255ms -->
+  </step><!-- duration: 207452ms -->
+  <step title="Outgoing response" date="2026-04-11T21:07:33.822" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 2ms -->
+</step><!-- duration: 207643ms -->

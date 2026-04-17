@@ -1,0 +1,46 @@
+<step title="BackgroundTrace" date="2026-04-10T23:27:11.711" instance="77ceac" url="/api/zipdeploy" method="POST" >
+  <step title="Cleanup Xml Logs" date="2026-04-10T23:27:11.725" /><!-- duration: 6ms -->
+  <step title="Creating temporary deployment - FetchDeploymentManager" date="2026-04-10T23:27:12.101" /><!-- duration: 9ms -->
+  <step title="Creating temporary deployment" date="2026-04-10T23:27:12.120" /><!-- duration: 119ms -->
+  <step title="Performing fetch based deployment" date="2026-04-10T23:27:12.338" >
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file /tmp/zipdeploy/43392835-3010-4e56-abf6-46508c1d9425.zip (37.57 MB) to /tmp/zipdeploy/extracted" date="2026-04-10T23:27:13.657" >
+      <step title="ChmodRecursive Process exited with total time taken in ms: 199" date="2026-04-10T23:27:16.113" /><!-- duration: 22ms -->
+    </step><!-- duration: 2488ms -->
+    <step title="Deployment timer started" date="2026-04-10T23:27:18.228" >
+      <step title="DeploymentManager.Deploy(id:ba237555-0fe2-47d3-b09e-6d3a663d8d75)" date="2026-04-10T23:27:18.241" >
+        <step title="Collecting changeset information" date="2026-04-10T23:27:18.310" /><!-- duration: 291ms -->
+        <step title="Updating submodules" date="2026-04-10T23:27:18.689" /><!-- duration: 1294ms -->
+        <step title="Determining deployment builder" date="2026-04-10T23:27:21.346" >
+          <step title="Builder is OryxBuilder" date="2026-04-10T23:27:21.416" /><!-- duration: 31ms -->
+        </step><!-- duration: 113ms -->
+        <step title="PreDeployment: context.CleanOutputPath False" date="2026-04-10T23:27:22.248" >
+          <step title="PreDeployment: context.OutputPath /home/site/wwwroot" date="2026-04-10T23:27:22.901" >
+            <step title="Building" date="2026-04-10T23:27:23.394" >
+              <step title="Executing external process" date="2026-04-10T23:27:24.462" type="process" path="bash" arguments="-c &quot;oryx build /tmp/zipdeploy/extracted -o /home/site/wwwroot --platform nodejs --platform-version 20 -p virtualenv_name= --log-file /tmp/build-debug.log  -i /tmp/8de9758b6e70c0b -p compress_node_modules=tar-gz | tee /tmp/oryx-build.log ; exit $PIPESTATUS &quot;" >
+                <step title="Cpu: npm install(978,32.660s)+build.sh(883,0.080s)+oryx(864,8.360s)+tee(865,0.000s)+bash(863,0.000s)=total(41.080s)" date="2026-04-10T23:28:58.364" /><!-- duration: 28ms -->
+                <step title="bash: no io activity for 61s, prev-cpu=-1.000s, current-cpu=41.080s" date="2026-04-10T23:28:58.503" /><!-- duration: 23ms -->
+                <step title="Cpu: npm install(978,64.660s)+build.sh(883,0.080s)+oryx(864,8.660s)+tee(865,0.000s)+bash(863,0.000s)=total(73.380s)" date="2026-04-10T23:29:59.315" /><!-- duration: 30ms -->
+                <step title="bash: no io activity for 122s, prev-cpu=41.080s, current-cpu=73.380s" date="2026-04-10T23:29:59.374" /><!-- duration: 53ms -->
+                <step title="Cpu: npm install(978,98.800s)+build.sh(883,0.080s)+oryx(864,8.800s)+tee(865,0.000s)+bash(863,0.000s)=total(107.670s)" date="2026-04-10T23:30:59.990" /><!-- duration: 51ms -->
+                <step title="bash: no io activity for 183s, prev-cpu=73.380s, current-cpu=107.670s" date="2026-04-10T23:31:00.171" /><!-- duration: 3ms -->
+                <step title="Cpu: esbuild(1115,0.320s)+node(1104,39.840s)+sh(1103,0.000s)+npm run build(1092,0.660s)+build.sh(883,0.080s)+oryx(864,9.130s)+tee(865,0.000s)+bash(863,0.000s)=total(50.010s)" date="2026-04-10T23:32:18.071" /><!-- duration: 39ms -->
+                <step title="bash: no io activity for 61s, prev-cpu=-1.000s, current-cpu=50.010s" date="2026-04-10T23:32:18.218" /><!-- duration: 41ms -->
+                <step title="Cpu: gzip(1171,30.670s)+sh(1170,0.000s)+tar(1169,5.280s)+build.sh(883,0.080s)+oryx(864,9.420s)+tee(865,0.000s)+bash(863,0.000s)=total(45.440s)" date="2026-04-10T23:34:11.667" /><!-- duration: 19ms -->
+                <step title="bash: no io activity for 60s, prev-cpu=-1.000s, current-cpu=45.440s" date="2026-04-10T23:34:11.699" /><!-- duration: 38ms -->
+                <step title="Cpu: gzip(1171,70.080s)+sh(1170,0.000s)+tar(1169,7.130s)+build.sh(883,0.080s)+oryx(864,9.450s)+tee(865,0.000s)+bash(863,0.000s)=total(86.740s)" date="2026-04-10T23:35:12.173" /><!-- duration: 51ms -->
+                <step title="bash: no io activity for 121s, prev-cpu=45.440s, current-cpu=86.740s" date="2026-04-10T23:35:12.244" /><!-- duration: 11ms -->
+              </step><!-- duration: 514186ms -->
+              <step title="Using GenericDeploymentLogParser" date="2026-04-10T23:35:59.244" /><!-- duration: 13ms -->
+              <step title="Triggering recycle (preview mode disabled)." date="2026-04-10T23:36:00.855" /><!-- duration: 12ms -->
+              <step title="Modified file to trigger a restart of the app container." date="2026-04-10T23:36:00.923" /><!-- duration: 5ms -->
+              <step title="Skip function trigger and logicapp sync because function is not enabled." date="2026-04-10T23:36:00.939" /><!-- duration: 9ms -->
+            </step><!-- duration: 518681ms -->
+          </step><!-- duration: 519265ms -->
+          <step title="Cleaning up temp files" date="2026-04-10T23:36:02.176" /><!-- duration: 11368ms -->
+          <step title="Cleaning up temp files" date="2026-04-10T23:36:13.552" /><!-- duration: 506ms -->
+          <step title="Reloading status file with latest updates" date="2026-04-10T23:36:14.123" >
+            <step title="WebHooksManager.PublishEventAsync: PostDeployment" date="2026-04-10T23:36:14.128" /><!-- duration: 165ms -->
+          </step><!-- duration: 173ms -->
+          <step title="Cleaning up temporary deployment - fetch deployment was successful" date="2026-04-10T23:36:14.302" /><!-- duration: 3ms -->
+        </step><!-- duration: 532124ms -->
+      </step><!-- duration: 536147ms -->

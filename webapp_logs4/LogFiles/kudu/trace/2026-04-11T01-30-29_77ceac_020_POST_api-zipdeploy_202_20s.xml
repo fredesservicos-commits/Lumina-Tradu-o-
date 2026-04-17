@@ -1,0 +1,15 @@
+<step title="Incoming Request" date="2026-04-11T01:30:29.823" instance="77ceac" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="834,1,18" Accept="*/*" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Content-Length="39402207" x-ms-client-request-id="f5d69f42-3545-11f1-af63-0005165ecf70" x-ms-artifact-checksum="ede8997eb2fa96b7548ce99fbc1dfadcb87f6f83edc8e612614ce4c09cb3f993" X-ARR-LOG-ID="f5d69f42-3545-11f1-af63-0005165ecf70" CLIENT-IP="38.210.181.118:16902" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" X-Client-IP="38.210.181.118" X-Client-Port="16902" >
+  <step title="Cleanup Xml Logs" date="2026-04-11T01:30:29.871" /><!-- duration: 200ms -->
+  <step title="ZipPushDeploy" date="2026-04-11T01:30:31.017" >
+    <step title="ZipDeploy. Extract zip. Remote build." date="2026-04-11T01:30:31.176" /><!-- duration: 20ms -->
+    <step title="Starting PushDeployAsync" date="2026-04-11T01:30:31.506" /><!-- duration: 81ms -->
+    <step title="Writing artifact to /tmp/zipdeploy/86262921-3236-4656-86ce-b3d339a731e9.zip" date="2026-04-11T01:30:32.021" >
+      <step title="Writing multipart request body to /tmp/zipdeploy/86262921-3236-4656-86ce-b3d339a731e9.zip" date="2026-04-11T01:30:32.220" /><!-- duration: 80ms -->
+    </step><!-- duration: 15258ms -->
+    <step title="Start deployment in the background" date="2026-04-11T01:30:47.350" >
+      <step title="Acquiring Deployment Lock" date="2026-04-11T01:30:47.791" /><!-- duration: 10ms -->
+      <step title="Acquired Deployment Lock" date="2026-04-11T01:30:48.074" /><!-- duration: 169ms -->
+    </step><!-- duration: 1653ms -->
+  </step><!-- duration: 18217ms -->
+  <step title="Outgoing response" date="2026-04-11T01:30:49.622" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 232ms -->
+</step><!-- duration: 20069ms -->

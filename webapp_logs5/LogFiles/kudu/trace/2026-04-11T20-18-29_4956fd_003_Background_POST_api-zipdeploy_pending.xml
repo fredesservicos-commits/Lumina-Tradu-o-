@@ -1,0 +1,65 @@
+<step title="BackgroundTrace" date="2026-04-11T20:18:29.332" instance="4956fd" url="/api/zipdeploy" method="POST" >
+  <step title="Creating temporary deployment - FetchDeploymentManager" date="2026-04-11T20:18:29.493" /><!-- duration: 11ms -->
+  <step title="Creating temporary deployment" date="2026-04-11T20:18:29.508" /><!-- duration: 133ms -->
+  <step title="Performing fetch based deployment" date="2026-04-11T20:18:29.717" >
+    <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file /tmp/zipdeploy/e9f3651d-f0e3-401d-bbfc-ac6e032f8d37.zip (0.37 MB) to /tmp/zipdeploy/extracted" date="2026-04-11T20:18:30.909" >
+      <step title="ChmodRecursive Process exited with total time taken in ms: 68" date="2026-04-11T20:18:31.067" /><!-- duration: 11ms -->
+    </step><!-- duration: 174ms -->
+    <step title="Deployment timer started" date="2026-04-11T20:18:33.101" >
+      <step title="DeploymentManager.Deploy(id:9a2f3cb3-eca7-4169-bd4a-1d562add24d6)" date="2026-04-11T20:18:33.115" >
+        <step title="Collecting changeset information" date="2026-04-11T20:18:33.157" /><!-- duration: 78ms -->
+        <step title="Updating submodules" date="2026-04-11T20:18:33.239" /><!-- duration: 1132ms -->
+        <step title="Determining deployment builder" date="2026-04-11T20:18:34.671" >
+          <step title="Builder is OryxBuilder" date="2026-04-11T20:18:34.686" /><!-- duration: 11ms -->
+        </step><!-- duration: 28ms -->
+        <step title="PreDeployment: context.CleanOutputPath False" date="2026-04-11T20:18:34.771" >
+          <step title="PreDeployment: context.OutputPath /home/site/wwwroot" date="2026-04-11T20:18:34.906" >
+            <step title="Building" date="2026-04-11T20:18:35.043" >
+              <step title="Executing external process" date="2026-04-11T20:18:35.354" type="process" path="bash" arguments="-c &quot;oryx build /tmp/zipdeploy/extracted -o /home/site/wwwroot --platform nodejs --platform-version 20 -p virtualenv_name= --log-file /tmp/build-debug.log  -i /tmp/8de9807820d5449 -p compress_node_modules=tar-gz | tee /tmp/oryx-build.log ; exit $PIPESTATUS &quot;" >
+                <step title="Cpu: npm install(996,31.100s)+build.sh(903,0.040s)+oryx(881,6.080s)+tee(882,0.010s)+bash(880,0.000s)=total(37.230s)" date="2026-04-11T20:19:52.986" /><!-- duration: 10ms -->
+                <step title="bash: no io activity for 60s, prev-cpu=-1.000s, current-cpu=37.230s" date="2026-04-11T20:19:53.003" /><!-- duration: 10ms -->
+                <step title="Cpu: npm install(996,58.880s)+build.sh(903,0.040s)+oryx(881,6.190s)+tee(882,0.010s)+bash(880,0.000s)=total(65.120s)" date="2026-04-11T20:20:53.661" /><!-- duration: 41ms -->
+                <step title="bash: no io activity for 121s, prev-cpu=37.230s, current-cpu=65.120s" date="2026-04-11T20:20:53.761" /><!-- duration: 32ms -->
+                <step title="Error occurred" date="2026-04-11T20:22:42.565" type="error" text="GetParentProcessLinux (1105) failed.: Could not find a part of the path &apos;/proc/1105/stat&apos;." stackTrace="   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.ReadLines(String path)
+   at Kudu.Core.Infrastructure.ProcessExtensions.GetParentProcessLinux(Process process, ITracer tracer) in /tmp/KuduLite/Kudu.Core/Infrastructure/ProcessExtensions.cs:line 155" /><!-- duration: 191ms -->
+                <step title="Error occurred" date="2026-04-11T20:22:44.054" type="error" text="GetParentProcessLinux (1106) failed.: Could not find a part of the path &apos;/proc/1106/stat&apos;." stackTrace="   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.ReadLines(String path)
+   at Kudu.Core.Infrastructure.ProcessExtensions.GetParentProcessLinux(Process process, ITracer tracer) in /tmp/KuduLite/Kudu.Core/Infrastructure/ProcessExtensions.cs:line 155" /><!-- duration: 60ms -->
+                <step title="Error occurred" date="2026-04-11T20:22:44.556" type="error" text="GetParentProcessLinux (1113) failed.: Could not find a part of the path &apos;/proc/1113/stat&apos;." stackTrace="   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.ReadLines(String path)
+   at Kudu.Core.Infrastructure.ProcessExtensions.GetParentProcessLinux(Process process, ITracer tracer) in /tmp/KuduLite/Kudu.Core/Infrastructure/ProcessExtensions.cs:line 155" /><!-- duration: 28ms -->
+                <step title="Cpu: npm install(996,106.700s)+build.sh(903,0.040s)+oryx(881,6.630s)+tee(882,0.010s)+bash(880,0.000s)=total(113.380s)" date="2026-04-11T20:22:44.865" /><!-- duration: 10ms -->
+                <step title="bash: no io activity for 60s, prev-cpu=-1.000s, current-cpu=113.380s" date="2026-04-11T20:22:45.108" /><!-- duration: 59ms -->
+                <step title="Cpu: gzip(1133,14.380s)+sh(1132,0.000s)+tar(1131,0.750s)+build.sh(903,0.050s)+oryx(881,7.060s)+tee(882,0.010s)+bash(880,0.000s)=total(22.250s)" date="2026-04-11T20:23:57.641" /><!-- duration: 48ms -->
+                <step title="bash: no io activity for 60s, prev-cpu=-1.000s, current-cpu=22.250s" date="2026-04-11T20:23:57.721" /><!-- duration: 11ms -->
+                <step title="Cpu: gzip(1133,53.280s)+sh(1132,0.000s)+tar(1131,2.820s)+build.sh(903,0.050s)+oryx(881,7.070s)+tee(882,0.010s)+bash(880,0.000s)=total(63.230s)" date="2026-04-11T20:24:58.163" /><!-- duration: 19ms -->
+                <step title="bash: no io activity for 121s, prev-cpu=22.250s, current-cpu=63.230s" date="2026-04-11T20:24:58.201" /><!-- duration: 22ms -->
+              </step><!-- duration: 429014ms -->
+              <step title="Using GenericDeploymentLogParser" date="2026-04-11T20:25:44.780" /><!-- duration: 10ms -->
+              <step title="Triggering recycle (preview mode disabled)." date="2026-04-11T20:25:46.263" /><!-- duration: 6ms -->
+              <step title="Modified file to trigger a restart of the app container." date="2026-04-11T20:25:46.315" /><!-- duration: 2ms -->
+              <step title="Skip function trigger and logicapp sync because function is not enabled." date="2026-04-11T20:25:46.342" /><!-- duration: 6ms -->
+              <step title="Purge deployment items" date="2026-04-11T20:25:47.419" >
+                <step title="Remove temp-b4b0, Pending, received at 04/11/2026 20:18:29" date="2026-04-11T20:25:47.492" /><!-- duration: 2ms -->
+                <step title="Remove temp-b224, Pending, received at 04/11/2026 20:16:47" date="2026-04-11T20:25:47.551" /><!-- duration: 6ms -->
+              </step><!-- duration: 142ms -->
+            </step><!-- duration: 432614ms -->
+          </step><!-- duration: 432764ms -->
+          <step title="Cleaning up temp files" date="2026-04-11T20:25:47.673" /><!-- duration: 2832ms -->
+          <step title="Cleaning up temp files" date="2026-04-11T20:25:50.513" /><!-- duration: 510ms -->
+          <step title="Reloading status file with latest updates" date="2026-04-11T20:25:51.225" >
+            <step title="WebHooksManager.PublishEventAsync: PostDeployment" date="2026-04-11T20:25:51.266" /><!-- duration: 413ms -->
+          </step><!-- duration: 458ms -->
+          <step title="Cleaning up temporary deployment - fetch deployment was successful" date="2026-04-11T20:25:51.688" /><!-- duration: 2ms -->
+        </step><!-- duration: 436964ms -->
+      </step><!-- duration: 438633ms -->

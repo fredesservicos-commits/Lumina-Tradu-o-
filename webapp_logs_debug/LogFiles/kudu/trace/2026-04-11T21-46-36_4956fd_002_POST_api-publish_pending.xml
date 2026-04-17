@@ -1,0 +1,46 @@
+<step title="Incoming Request" date="2026-04-11T21:46:36.506" instance="4956fd" url="/api/publish?type=zip" method="POST" type="request" pid="833,1,5" Accept="*/*" Host="lumina-translation-v4.scm.azurewebsites.net" User-Agent="AZURECLI/2.85.0 (MSI)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Cookie="ARRAffinity=4956fd0f71e6a2c01e79df39cf93832dc1b88322e9676900fc844a8843ac6026; ARRAffinitySameSite=4956fd0f71e6a2c01e79df39cf93832dc1b88322e9676900fc844a8843ac6026" Content-Length="174532714" x-ms-client-request-id="d543d3a5-35ef-11f1-ab11-0005165ecf70" x-ms-artifact-checksum="953ab9d27c16a63d71c8ff01e4562aa3343d770944d88cccd9ebf373590a6593" X-ARR-LOG-ID="d543d3a5-35ef-11f1-ab11-0005165ecf70" CLIENT-IP="38.210.181.118:16486" X-SITE-DEPLOYMENT-ID="lumina-translation-v4" WAS-DEFAULT-HOSTNAME="lumina-translation-v4.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/publish?type=zip" X-Client-IP="38.210.181.118" X-Client-Port="16486" >
+  <step title="OneDeploy" date="2026-04-11T21:46:38.365" >
+    <step title="None repository commit" date="2026-04-11T21:46:38.386" >
+      <step title="Commit id: b6514c19-1152-4b7a-9b8b-8e667333ec7a" date="2026-04-11T21:46:38.396" Message="N/A" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 11ms -->
+    </step><!-- duration: 30ms -->
+    <step title="Starting PushDeployAsync" date="2026-04-11T21:46:38.426" /><!-- duration: 8ms -->
+    <step title="WEBSITE_RUN_FROM_PACKAGE is set to 1. Writing zip to SitePackagesPath" date="2026-04-11T21:46:38.487" /><!-- duration: 9ms -->
+    <step title="Copying zip to SitePackages /home/data/SitePackages/20260411214638.zip from request body" date="2026-04-11T21:46:38.518" /><!-- duration: 19ms -->
+    <step title="Writing multipart request body to /home/data/SitePackages/20260411214638.zip" date="2026-04-11T21:46:38.558" /><!-- duration: 19ms -->
+    <step title="Attempting to fetch target branch HEAD" date="2026-04-11T21:46:53.227" /><!-- duration: 4ms -->
+    <step title="Acquiring Deployment Lock" date="2026-04-11T21:46:53.235" /><!-- duration: 9ms -->
+    <step title="Acquired Deployment Lock" date="2026-04-11T21:46:53.380" /><!-- duration: 2ms -->
+    <step title="Performing fetch based deployment" date="2026-04-11T21:46:53.387" >
+      <step title="Creating temporary deployment" date="2026-04-11T21:46:53.389" /><!-- duration: 132ms -->
+      <step title="Releasing Deployment Lock" date="2026-04-11T21:46:54.697" /><!-- duration: 9ms -->
+      <step title="None repository commit" date="2026-04-11T21:46:55.567" >
+        <step title="Commit id: b6514c19-1152-4b7a-9b8b-8e667333ec7a" date="2026-04-11T21:46:55.576" Message="OneDeploy" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 2ms -->
+      </step><!-- duration: 13ms -->
+      <step title="Deployment timer started" date="2026-04-11T21:46:57.584" >
+        <step title="DeploymentManager.Deploy(id:b6514c19-1152-4b7a-9b8b-8e667333ec7a)" date="2026-04-11T21:46:57.590" >
+          <step title="Collecting changeset information" date="2026-04-11T21:46:57.599" /><!-- duration: 87ms -->
+          <step title="Updating submodules" date="2026-04-11T21:46:57.689" /><!-- duration: 1132ms -->
+          <step title="Determining deployment builder" date="2026-04-11T21:46:59.063" >
+            <step title="Builder is RunFromZipSiteBuilder" date="2026-04-11T21:46:59.074" /><!-- duration: 3ms -->
+          </step><!-- duration: 20ms -->
+          <step title="PreDeployment: context.CleanOutputPath False" date="2026-04-11T21:46:59.136" >
+            <step title="PreDeployment: context.OutputPath /home/site/wwwroot" date="2026-04-11T21:46:59.295" >
+              <step title="Building" date="2026-04-11T21:46:59.456" >
+                <step title="Modified file to trigger a restart of the app container." date="2026-04-11T21:47:00.157" /><!-- duration: 3ms -->
+                <step title="Skip function trigger and logicapp sync because function is not enabled." date="2026-04-11T21:47:00.179" /><!-- duration: 10ms -->
+                <step title="Purge deployment items" date="2026-04-11T21:47:01.570" >
+                  <step title="Remove 43084bdc-, Failed, received at 04/11/2026 21:33:19" date="2026-04-11T21:47:01.621" /><!-- duration: 2ms -->
+                  <step title="Remove temp-1697, Failed, received at 04/11/2026 21:33:11" date="2026-04-11T21:47:01.691" /><!-- duration: 10ms -->
+                </step><!-- duration: 143ms -->
+              </step><!-- duration: 2426ms -->
+            </step><!-- duration: 2686ms -->
+            <step title="Cleaning up temp files" date="2026-04-11T21:47:01.992" /><!-- duration: 60ms -->
+            <step title="Cleaning up temp files" date="2026-04-11T21:47:02.073" /><!-- duration: 529ms -->
+            <step title="Reloading status file with latest updates" date="2026-04-11T21:47:02.655" >
+              <step title="WebHooksManager.PublishEventAsync: PostDeployment" date="2026-04-11T21:47:02.665" /><!-- duration: 582ms -->
+            </step><!-- duration: 612ms -->
+            <step title="Cleaning up temporary deployment - fetch deployment was successful" date="2026-04-11T21:47:03.299" /><!-- duration: 10ms -->
+          </step><!-- duration: 4325ms -->
+        </step><!-- duration: 5887ms -->
+        <step title="Outgoing response" date="2026-04-11T21:47:03.498" type="response" statusCode="200" statusText="OK" /><!-- duration: 2ms -->
+      </step><!-- duration: 5918ms -->
