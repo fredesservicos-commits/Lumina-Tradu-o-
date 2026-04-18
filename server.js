@@ -397,22 +397,19 @@ async function startServer() {
         }
         res.json({ received: true });
     });
-    // PROXY DE DOWNLOAD: O "Detetive" - Busca o arquivo real listando os blobs da Azure
+    // PROXY DE DOWNLOAD: Modo Redirecionamento Direto (Mais rápido e infalível)
     app.get("/api/download/:userId/:taskId/:filename", async (req, res) => {
         try {
             const { taskId, filename } = req.params;
             const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
-            if (!outputUrlFull)
-                throw new Error("Configuração de storage ausente.");
+            if (!outputUrlFull) throw new Error("Configuração ausente.");
             
             const [baseUrl, sas] = outputUrlFull.split('?');
             const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
             const decodedFilename = decodeURIComponent(filename).toLowerCase();
             const shortTaskId = taskId.slice(0, 8);
             
-            console.log(` > [DOWNLOAD PROXY] Buscando arquivo para Task: ${taskId}`);
-            
-            // 1. Listar para encontrar o match real
+            // 1. Localizar o arquivo real na Azure
             const listResponse = await fetch(listUrl);
             const xml = await listResponse.text();
             const blobs = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
@@ -424,24 +421,22 @@ async function startServer() {
                        n.includes(decodedFilename);
             });
             
-            if (!realBlobName) throw new Error("Arquivo não localizado no Storage.");
+            if (!realBlobName) {
+                console.error(" > [DOWNLOAD] Arquivo não encontrado na Azure.");
+                return res.status(404).send("Arquivo não encontrado no Storage.");
+            }
             
-            console.log(` ✅ [DOWNLOAD PROXY] Localizado: ${realBlobName}`);
+            // 2. Criar a URL final com o SAS e Redirecionar
+            const finalDownloadUrl = `${baseUrl}/${encodeURIComponent(realBlobName).replace(/%2F/g, '/') }?${sas}`;
             
-            const downloadUrl = `${baseUrl}/${encodeURIComponent(realBlobName).replace(/%2F/g, '/') }?${sas}`;
-            const downloadResponse = await fetch(downloadUrl);
+            console.log(` ✅ [DOWNLOAD] Redirecionando para Azure: ${realBlobName}`);
             
-            if (!downloadResponse.ok) throw new Error(`Erro Azure: ${downloadResponse.status}`);
-            
-            res.setHeader("Content-Type", downloadResponse.headers.get("Content-Type") || "application/octet-stream");
-            res.setHeader("Content-Disposition", `attachment; filename="${realBlobName.split('/').pop()}"`);
-            
-            const arrayBuffer = await downloadResponse.arrayBuffer();
-            res.send(Buffer.from(arrayBuffer));
+            // O navegador agora baixa diretamente da Azure Cloud
+            res.redirect(finalDownloadUrl);
         }
         catch (error) {
-            console.error(` > [DOWNLOAD PROXY] Erro: ${error.message}`);
-            res.status(404).send(`Erro ao baixar: ${error.message}`);
+            console.error(` > [DOWNLOAD] Erro: ${error.message}`);
+            res.status(500).send("Erro ao processar download.");
         }
     });
     // Vite middleware (Habilitado apenas em desenvolvimento)
