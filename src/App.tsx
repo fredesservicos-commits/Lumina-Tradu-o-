@@ -556,24 +556,24 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
 
             <div className="flex items-center gap-4">
               {profile && (
-                <div className="hidden lg:flex flex-col items-end mr-4">
+                <div className="flex flex-col items-end mr-2 sm:mr-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[9px] font-black uppercase text-primary tracking-widest">
-                      PLANO {profile.plan_type?.toUpperCase() || 'FREE'}
+                    <span className="hidden xs:inline-block text-[8px] sm:text-[9px] font-black uppercase text-primary tracking-widest">
+                      {profile.plan_type?.toUpperCase() || 'FREE'}
                     </span>
-                    <span className="text-[10px] font-bold text-white/40 tabular-nums">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-white/40 tabular-nums">
                       {profile.characters_used.toLocaleString()} / {profile.quota_limit.toLocaleString()}
                     </span>
                   </div>
-                  <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                  <div className="w-32 sm:w-48 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
                     <motion.div 
                       className="h-full bg-primary"
                       animate={{ width: `${Math.min((profile.characters_used / profile.quota_limit) * 100, 100)}%` }}
                     />
                   </div>
                   {profile.plan_type === 'free' && (
-                    <span className="text-[8px] font-bold text-slate-500 mt-1 uppercase">
-                      Arquivos: {profile.files_this_month}/2 este mês
+                    <span className="hidden xs:inline-block text-[8px] font-bold text-slate-500 mt-1 uppercase">
+                      Arq: {profile.files_this_month}/2
                     </span>
                   )}
                 </div>
