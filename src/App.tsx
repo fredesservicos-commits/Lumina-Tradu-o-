@@ -549,7 +549,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
             </div>
             <div className="hidden sm:block">
               <h2 className="text-xl font-black text-white tracking-tighter leading-none">LUMINA</h2>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-primary font-black mt-1">v4.5 ATUALIZADA (STRIPE LIVE)</p>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-primary font-black mt-1">v4.5.2 - 18/04 19:15 (BUILD FINAL)</p>
             </div>
           </div>
 
@@ -782,13 +782,15 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                           <button onClick={() => setActiveComparison(task)} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all text-slate-300">
                              <Maximize2 size={20} />
                           </button>
-                          <button 
-                            onClick={() => handleDownload(task)} 
-                            className="flex items-center gap-3 px-6 py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl transition-all shadow-xl shadow-primary/20 group/dl"
+                          <a 
+                            href={task.resultUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 px-6 py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl transition-all shadow-xl shadow-primary/20 group/dl no-underline"
                           >
                              <Download size={20} className="group-hover/dl:translate-y-0.5 transition-transform" />
                              <span className="text-xs uppercase tracking-widest">Baixar</span>
-                          </button>
+                          </a>
                         </div>
                       </div>
                     ) : (
