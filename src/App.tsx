@@ -413,24 +413,10 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
     fetchProfile();
   }, [session.user.id]);
 
-  const handleDownload = async (task: TranslationTask) => {
+  const handleDownload = (task: TranslationTask) => {
     if (!task.resultUrl) return;
-    try {
-      const response = await fetch(task.resultUrl);
-      if (!response.ok) throw new Error("Falha ao baixar arquivo");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = task.filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error("Download error:", err);
-      alert("Erro ao baixar o arquivo. Verifique sua conexão.");
-    }
+    // Redirecionamento direto do navegador: mais seguro contra CORS e falhas de memória
+    window.location.href = task.resultUrl;
   };
 
   const deleteTask = async (taskId: string) => {
