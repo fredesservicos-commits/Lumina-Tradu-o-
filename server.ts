@@ -338,29 +338,54 @@ async function startServer() {
     }
   });
 
+  // Rota de Diagnóstico: Ver o que a Azure está respondendo de verdade
+  app.get("/api/debug/storage", async (req, res) => {
+    try {
+      const outputUrl = process.env.VITE_AZURE_STORAGE_OUTPUT_URL || "";
+      if (!outputUrl) return res.json({ error: "Variável VITE_AZURE_STORAGE_OUTPUT_URL não definida" });
+      
+      const [baseUrl, sas] = outputUrl.split('?');
+      const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
+      
+      const response = await fetch(listUrl);
+      const xml = await response.text();
+      
+      res.json({
+        status: response.status,
+        statusText: response.statusText,
+        baseUrl: baseUrl,
+        xmlPreview: xml.slice(0, 500),
+        fullXml: xml
+      });
+    } catch (err: any) {
+      res.json({ error: err.message });
+    }
+  });
+
   app.get("/api/azure/list-outputs", async (req, res) => {
     try {
       const outputUrl = process.env.VITE_AZURE_STORAGE_OUTPUT_URL!;
       const [baseUrl, sas] = outputUrl.split('?');
       const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
       
-      console.log(`--- Proxy: Listando Arquivos de Saída ---`);
-      console.log(` > URL: ${baseUrl}`);
-      
+      console.log(`--- Proxy: Sincronizando com Azure Storage ---`);
       const response = await fetch(listUrl);
+      
+      if (!response.ok) {
+        console.error(` > Erro Azure (${response.status}): ${response.statusText}`);
+        return res.json({ files: [], error: `Azure error ${response.status}` });
+      }
+
       const xml = await response.text();
       
-      const files = xml.match(/<Name>(.*?)<\/Name>/g) || [];
-      const fileNames = files.map(f => f.replace(/<\/?Name>/g, ''));
+      // Regex mais resiliente para capturar nomes capturando case-insensitive e espaços
+      const files = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
+      const fileNames = files.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
       
-      console.log(` > Encontrados ${fileNames.length} arquivos totais no container.`);
-      if (fileNames.length > 0) {
-        console.log(` > Exemplo de arquivo: ${fileNames[0]}`);
-      }
-      
+      console.log(` > Sincronização concluída. ${fileNames.length} blobs encontrados.`);
       res.json({ files: fileNames });
     } catch (error: any) {
-      console.error(` > Erro ao listar outputs: ${error.message}`);
+      console.error(` > Erro Crítico na Listagem: ${error.message}`);
       res.status(500).json({ error: error.message });
     }
   });

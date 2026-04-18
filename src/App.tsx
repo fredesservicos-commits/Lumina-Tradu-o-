@@ -348,11 +348,33 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
     const syncHistory = async () => {
       setIsSyncing(true);
       try {
+        // Backup: Buscar primeiro no Supabase para garantir que o histórico apareça
+        const { data: dbTranslations, error: dbError } = await supabase
+          .from('translations')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('id', { ascending: false });
+
+        if (dbTranslations) {
+          const dbTasks: TranslationTask[] = dbTranslations.map(t => ({
+            id: t.id,
+            filename: t.filename,
+            targetLang: t.target_lang || "Portuguese",
+            status: t.status || "completed",
+            progress: 100,
+            resultUrl: t.result_url || `/api/download/${session.user.id}/${t.id}/${t.filename}`,
+            extension: t.extension || t.filename.split('.').pop()?.toLowerCase() || 'pdf',
+            metrics: t.metrics
+          }));
+          
+          setTasks(dbTasks);
+          console.log(` > Histórico carregado via Banco de Dados: ${dbTasks.length} itens.`);
+        }
+
+        // Sincronização secundária com Azure (para arquivos órfãos)
         const response = await fetch("/api/azure/list-outputs");
         const data = await response.json();
         if (data.files && Array.isArray(data.files)) {
-          const baseUrl = import.meta.env.VITE_AZURE_STORAGE_OUTPUT_URL.split('?')[0];
-          const sas = import.meta.env.VITE_AZURE_STORAGE_OUTPUT_URL.split('?')[1];
           const historicalTasks: TranslationTask[] = data.files
             .filter((f: string) => f.includes('/') && !f.endsWith('/'))
             .map((f: string) => {
@@ -374,7 +396,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
             return [...prev, ...historicalTasks.filter(t => !existingIds.has(t.id))];
           });
         }
-      } catch (err) { console.error(err); } finally { setIsSyncing(false); }
+      } catch (err) { console.error("Erro ao sincronizar histórico:", err); } finally { setIsSyncing(false); }
     };
     syncHistory();
 
