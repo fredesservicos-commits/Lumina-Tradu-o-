@@ -42,12 +42,15 @@ if (!stripe) {
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 
-// Configuração de pastas (similar ao PDF)
-const UPLOADS_DIR = path.join(process.cwd(), "uploads");
-const OUTPUTS_DIR = path.join(process.cwd(), "outputs");
+import os from "os";
 
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
-if (!fs.existsSync(OUTPUTS_DIR)) fs.mkdirSync(OUTPUTS_DIR);
+// Configuração de pastas (Uso de /tmp em produção para evitar erro de Read-Only File System no Azure)
+const isProd = process.env.NODE_ENV === "production";
+const UPLOADS_DIR = isProd ? path.join(os.tmpdir(), "lumina-uploads") : path.join(process.cwd(), "uploads");
+const OUTPUTS_DIR = isProd ? path.join(os.tmpdir(), "lumina-outputs") : path.join(process.cwd(), "outputs");
+
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+if (!fs.existsSync(OUTPUTS_DIR)) fs.mkdirSync(OUTPUTS_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOADS_DIR),
