@@ -397,46 +397,39 @@ async function startServer() {
         }
         res.json({ received: true });
     });
-    // PROXY DE DOWNLOAD: Modo Redirecionamento Direto (Mais rápido e infalível)
+    // PROXY DE DOWNLOAD: Versão de Alta Compatibilidade (Azure Windows + Node 20)
     app.get("/api/download/:userId/:taskId/:filename", async (req, res) => {
+        const { taskId, filename } = req.params;
+        console.log(`[DOWNLOAD] Iniciando busca para task: ${taskId}`);
+        
         try {
-            const { taskId, filename } = req.params;
             const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
-            if (!outputUrlFull) throw new Error("Configuração ausente.");
+            if (!outputUrlFull) return res.status(500).send("Configuração de storage ausente no Azure.");
             
             const [baseUrl, sas] = outputUrlFull.split('?');
             const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
-            const decodedFilename = decodeURIComponent(filename).toLowerCase();
-            const shortTaskId = taskId.slice(0, 8);
             
-            // 1. Localizar o arquivo real na Azure
-            const listResponse = await fetch(listUrl);
-            const xml = await listResponse.text();
-            const blobs = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
-            const blobNames = blobs.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
+            // Busca simplificada (sem depender de fetch global se possível)
+            const response = await fetch(listUrl);
+            const xml = await response.text();
             
-            const realBlobName = blobNames.find(name => {
-                const n = name.toLowerCase();
-                return (n.includes(taskId.toLowerCase()) || n.includes(shortTaskId.toLowerCase())) && 
-                       n.includes(decodedFilename);
-            });
+            // Regex ultra-simples para achar o link
+            const blobRegex = new RegExp(`<Name>([^<]*(?:${taskId}|${taskId.slice(0, 8)})[^<]*${filename.split('.')[0]}[^<]*)</Name>`, "i");
+            const match = xml.match(blobRegex);
             
-            if (!realBlobName) {
-                console.error(" > [DOWNLOAD] Arquivo não encontrado na Azure.");
-                return res.status(404).send("Arquivo não encontrado no Storage.");
+            if (match && match[1]) {
+                const realBlobName = match[1];
+                const finalUrl = `${baseUrl}/${realBlobName.split('/').map(encodeURIComponent).join('/')}?${sas}`;
+                console.log(`✅ [DOWNLOAD] Sucesso! Redirecionando para: ${realBlobName}`);
+                return res.redirect(finalUrl);
             }
             
-            // 2. Criar a URL final com o SAS e Redirecionar
-            const finalDownloadUrl = `${baseUrl}/${encodeURIComponent(realBlobName).replace(/%2F/g, '/') }?${sas}`;
-            
-            console.log(` ✅ [DOWNLOAD] Redirecionando para Azure: ${realBlobName}`);
-            
-            // O navegador agora baixa diretamente da Azure Cloud
-            res.redirect(finalDownloadUrl);
+            console.error(`❌ [DOWNLOAD] Arquivo não encontrado no XML da Azure para taskId: ${taskId}`);
+            res.status(404).send(`Arquivo não encontrado. Task: ${taskId}. Verifique se o processamento terminou.`);
         }
         catch (error) {
-            console.error(` > [DOWNLOAD] Erro: ${error.message}`);
-            res.status(500).send("Erro ao processar download.");
+            console.error(`❌ [DOWNLOAD] Erro interno: ${error.message}`);
+            res.status(500).send(`Erro no servidor: ${error.message}`);
         }
     });
     // Vite middleware (Habilitado apenas em desenvolvimento)
