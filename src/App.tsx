@@ -358,13 +358,13 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
 
         if (dbTranslations) {
           const dbTasks: TranslationTask[] = dbTranslations.map(t => ({
-            id: t.id,
+            id: t.task_id || t.id, // Usamos o task_id da Azure como ID principal da tarefa
             filename: t.filename,
             targetLang: t.target_lang || "Portuguese",
             status: t.status || "completed",
             progress: 100,
-            // Forçamos a geração dinâmica do link para evitar links antigos quebrados no banco
-            resultUrl: `/api/download/${session.user.id}/${t.id}/${t.filename}`,
+            // O segredo está aqui: usar t.task_id para o caminho da pasta
+            resultUrl: `/api/download/${session.user.id}/${t.task_id || t.id}/${t.filename}`,
             extension: t.extension || t.filename.split('.').pop()?.toLowerCase() || 'pdf',
             metrics: t.metrics
           }));
