@@ -484,10 +484,10 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
     console.log("🚀 BOTÃO CLICADO! Tipo de Plano:", planType);
     
     const PRICE_IDS: Record<string, string> = {
-      'professional': import.meta.env.VITE_STRIPE_PRICE_PROFESSIONAL || 'price_1Qx...prof',
-      'elite': import.meta.env.VITE_STRIPE_PRICE_ELITE || 'price_1Qx...elite',
-      'business': import.meta.env.VITE_STRIPE_PRICE_BUSINESS || 'price_1Qx...business',
-      'credits': import.meta.env.VITE_STRIPE_PRICE_CREDITS || 'price_1Qx...credits',
+      'professional': import.meta.env.VITE_STRIPE_PRICE_PROFESSIONAL || 'price_1TMyrdJRF8C7GtHgIzYhEozI',
+      'elite': import.meta.env.VITE_STRIPE_PRICE_ELITE || 'price_1TMywcJRF8C7GtHgF2ZenDAt',
+      'business': import.meta.env.VITE_STRIPE_PRICE_BUSINESS || 'price_1TMz3MJRF8C7GtHgySmEMtow',
+      'credits': import.meta.env.VITE_STRIPE_PRICE_CREDITS || 'price_1TMzA3JRF8C7GtHglVvSfuDs',
     };
 
     try {
