@@ -302,6 +302,21 @@ async function startServer() {
             res.status(500).json({ error: error.message });
         }
     });
+
+    // ROTA DE DIAGNÓSTICO: Mostra exatamente o que tem na Azure
+    app.get("/api/debug/storage", async (req, res) => {
+        try {
+            const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
+            if (!outputUrlFull) return res.status(500).json({ error: "Env var ausente" });
+            const [baseUrl, sas] = outputUrlFull.split('?');
+            const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
+            const response = await fetch(listUrl);
+            const xml = await response.text();
+            res.json({ status: response.status, baseUrl, fullXml: xml });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
     // --- STRIPE ENDPOINTS ---
     app.post("/api/create-checkout-session", async (req, res) => {
         try {
@@ -382,29 +397,51 @@ async function startServer() {
         }
         res.json({ received: true });
     });
-    // PROXY DE DOWNLOAD: Resolve o problema de env variables no frontend
+    // PROXY DE DOWNLOAD: O "Detetive" - Busca o arquivo real listando os blobs da Azure
     app.get("/api/download/:userId/:taskId/:filename", async (req, res) => {
         try {
-            const { userId, taskId, filename } = req.params;
+            const { taskId, filename } = req.params;
             const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
+            if (!outputUrlFull)
+                throw new Error("Configuração de storage ausente.");
+            
             const [baseUrl, sas] = outputUrlFull.split('?');
-            const blobPath = `${userId}/${taskId}/${filename}`;
-            // Encode o filename para a requisição interna à Azure, mas mantém a estrutura de pastas
-            const encodedBlobPath = `${userId}/${taskId}/${encodeURIComponent(filename)}`;
-            const downloadUrl = `${baseUrl}/${encodedBlobPath}?${sas}`;
-            console.log(` > Proxy Download: ${blobPath} (Encoded: ${encodedBlobPath})`);
-            const response = await fetch(downloadUrl);
-            if (!response.ok)
-                throw new Error(`Download failed: ${response.status}`);
-            const contentType = response.headers.get("Content-Type") || "application/pdf";
-            res.setHeader("Content-Type", contentType);
-            res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-            const arrayBuffer = await response.arrayBuffer();
+            const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
+            const decodedFilename = decodeURIComponent(filename).toLowerCase();
+            const shortTaskId = taskId.slice(0, 8);
+            
+            console.log(` > [DOWNLOAD PROXY] Buscando arquivo para Task: ${taskId}`);
+            
+            // 1. Listar para encontrar o match real
+            const listResponse = await fetch(listUrl);
+            const xml = await listResponse.text();
+            const blobs = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
+            const blobNames = blobs.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
+            
+            const realBlobName = blobNames.find(name => {
+                const n = name.toLowerCase();
+                return (n.includes(taskId.toLowerCase()) || n.includes(shortTaskId.toLowerCase())) && 
+                       n.includes(decodedFilename);
+            });
+            
+            if (!realBlobName) throw new Error("Arquivo não localizado no Storage.");
+            
+            console.log(` ✅ [DOWNLOAD PROXY] Localizado: ${realBlobName}`);
+            
+            const downloadUrl = `${baseUrl}/${encodeURIComponent(realBlobName).replace(/%2F/g, '/') }?${sas}`;
+            const downloadResponse = await fetch(downloadUrl);
+            
+            if (!downloadResponse.ok) throw new Error(`Erro Azure: ${downloadResponse.status}`);
+            
+            res.setHeader("Content-Type", downloadResponse.headers.get("Content-Type") || "application/octet-stream");
+            res.setHeader("Content-Disposition", `attachment; filename="${realBlobName.split('/').pop()}"`);
+            
+            const arrayBuffer = await downloadResponse.arrayBuffer();
             res.send(Buffer.from(arrayBuffer));
         }
         catch (error) {
-            console.error(` > Erro no Proxy Download: ${error.message}`);
-            res.status(404).send("Arquivo não encontrado ou erro no servidor.");
+            console.error(` > [DOWNLOAD PROXY] Erro: ${error.message}`);
+            res.status(404).send(`Erro ao baixar: ${error.message}`);
         }
     });
     // Vite middleware (Habilitado apenas em desenvolvimento)
