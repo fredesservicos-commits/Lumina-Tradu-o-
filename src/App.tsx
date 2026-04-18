@@ -558,7 +558,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
               {profile && (
                 <div className="flex flex-col items-end mr-2 sm:mr-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="hidden xs:inline-block text-[8px] sm:text-[9px] font-black uppercase text-primary tracking-widest">
+                    <span className="inline-block text-[8px] sm:text-[9px] font-black uppercase text-primary tracking-widest">
                       {profile.plan_type?.toUpperCase() || 'FREE'}
                     </span>
                     <span className="text-[9px] sm:text-[10px] font-bold text-white/40 tabular-nums">
@@ -572,7 +572,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                     />
                   </div>
                   {profile.plan_type === 'free' && (
-                    <span className="hidden xs:inline-block text-[8px] font-bold text-slate-500 mt-1 uppercase">
+                    <span className="inline-block text-[8px] font-bold text-slate-500 mt-1 uppercase">
                       Arq: {profile.files_this_month}/2
                     </span>
                   )}
