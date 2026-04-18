@@ -21,7 +21,7 @@ jobs:
       run: npm ci
 
     - name: Build frontend (Vite)
-      run: npm run build:local
+      run: npm run build:ui
 
     - name: Build server
       run: npm run build:server
