@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "npm run build:server && npm run build:ui"
   },
   "dependencies": {
     "@azure/identity": "^4.13.1",

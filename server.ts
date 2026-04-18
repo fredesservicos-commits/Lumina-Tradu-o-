@@ -478,53 +478,51 @@ async function startServer() {
     res.json({ received: true });
   });
 
-  // PROXY DE DOWNLOAD: Resolve o problema de env variables no frontend
+  // PROXY DE DOWNLOAD: O "Detetive" - Busca o arquivo real listando os blobs da Azure
   app.get("/api/download/:userId/:taskId/:filename", async (req, res) => {
     try {
-      const { userId, taskId, filename } = req.params;
+      const { taskId, filename } = req.params;
       const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL!;
-      
       if (!outputUrlFull) throw new Error("Configuração de storage ausente.");
 
       const [baseUrl, sas] = outputUrlFull.split('?');
-      const decodedFilename = decodeURIComponent(filename);
-      
-      // Lista de caminhos possíveis onde a Azure pode ter salvo o arquivo
-      const possiblePaths = [
-        `${userId}/${taskId}/${decodedFilename}`,              // Padrão Lumina
-        `${userId}/${taskId}/${filename}`,                     // Padrão Lumina (Encoded)
-        `pt/${userId}/${taskId}/${decodedFilename}`,           // Padrão Azure Translator
-        `${taskId}/${decodedFilename}`,                        // Sem UID
-        decodedFilename                                        // Raiz
-      ];
+      const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
+      const decodedFilename = decodeURIComponent(filename).toLowerCase();
+      const shortTaskId = taskId.slice(0, 8); // A Azure costuma usar os primeiros 8 caracteres
 
-      console.log(` > [DOWNLOAD PROXY] Iniciando busca universal para: ${decodedFilename}`);
+      console.log(` > [DOWNLOAD PROXY] Buscando arquivo para Task: ${taskId} (${shortTaskId})`);
 
-      let finalResponse: any = null;
-      let usedPath = "";
+      // 1. Listar todos os arquivos para encontrar o nome real
+      const listResponse = await fetch(listUrl);
+      const xml = await listResponse.text();
+      const blobs = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
+      const blobNames = blobs.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
 
-      for (const path of possiblePaths) {
-        const downloadUrl = `${baseUrl}/${encodeURIComponent(path).replace(/%2F/g, '/') }?${sas}`;
-        
-        const response = await fetch(downloadUrl, { method: 'HEAD' });
-        if (response.ok) {
-          finalResponse = await fetch(downloadUrl);
-          usedPath = path;
-          break;
-        }
+      // 2. Procurar o melhor match (que contenha o taskId e o nome do arquivo)
+      const realBlobName = blobNames.find(name => {
+        const n = name.toLowerCase();
+        return (n.includes(taskId.toLowerCase()) || n.includes(shortTaskId.toLowerCase())) && 
+               n.includes(decodedFilename);
+      });
+
+      if (!realBlobName) {
+        console.error(` > [DOWNLOAD PROXY] Arquivo não encontrado na listagem da Azure.`);
+        throw new Error("Arquivo não encontrado no Storage.");
       }
 
-      if (!finalResponse || !finalResponse.ok) {
-        throw new Error("Arquivo físico não encontrado no Azure Storage.");
-      }
+      console.log(` ✅ [DOWNLOAD PROXY] Arquivo localizado: ${realBlobName}`);
 
-      console.log(` ✅ [DOWNLOAD PROXY] Sucesso! Arquivo encontrado em: ${usedPath}`);
-      
-      const contentType = finalResponse.headers.get("Content-Type") || "application/octet-stream";
+      // 3. Fazer o download do arquivo real encontrado
+      const downloadUrl = `${baseUrl}/${encodeURIComponent(realBlobName).replace(/%2F/g, '/') }?${sas}`;
+      const downloadResponse = await fetch(downloadUrl);
+
+      if (!downloadResponse.ok) throw new Error(`Erro ao baixar da Azure: ${downloadResponse.status}`);
+
+      const contentType = downloadResponse.headers.get("Content-Type") || "application/octet-stream";
       res.setHeader("Content-Type", contentType);
-      res.setHeader("Content-Disposition", `attachment; filename="${decodedFilename}"`);
+      res.setHeader("Content-Disposition", `attachment; filename="${realBlobName.split('/').pop()}"`);
       
-      const arrayBuffer = await finalResponse.arrayBuffer();
+      const arrayBuffer = await downloadResponse.arrayBuffer();
       res.send(Buffer.from(arrayBuffer));
       
     } catch (error: any) {
