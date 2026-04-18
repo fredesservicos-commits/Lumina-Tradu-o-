@@ -414,9 +414,13 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
   }, [session.user.id]);
 
   const handleDownload = (task: TranslationTask) => {
-    if (!task.resultUrl) return;
-    // Redirecionamento direto do navegador: mais seguro contra CORS e falhas de memória
-    window.location.href = task.resultUrl;
+    if (!task.resultUrl) {
+      alert("Erro: URL de download não encontrada para este arquivo.");
+      return;
+    }
+    // Abrir em nova aba é mais resiliente a bloqueios de segurança do navegador
+    console.log("Solicitando download:", task.resultUrl);
+    window.open(task.resultUrl, '_blank');
   };
 
   const deleteTask = async (taskId: string) => {
