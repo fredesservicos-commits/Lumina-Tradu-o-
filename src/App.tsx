@@ -579,6 +579,19 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                       {profile.characters_used.toLocaleString()} / {profile.quota_limit.toLocaleString()}
                     </span>
                   </div>
+                  <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10">
+      {/* BOTÃO DE TESTE EMERGENCIAL */}
+      <div className="bg-red-600/20 py-2 flex justify-center border-b border-red-500/30">
+        <button 
+          onClick={() => {
+            alert("🚀 JavaScript está funcionando! Tentando abrir download...");
+            window.open("/api/debug/storage", "_blank");
+          }}
+          className="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-1 rounded-full font-bold animate-pulse"
+        >
+          CLIQUE AQUI PARA TESTAR O SISTEMA
+        </button>
+      </div>
                   <div className="w-32 sm:w-48 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
                     <motion.div 
                       className="h-full bg-primary"
