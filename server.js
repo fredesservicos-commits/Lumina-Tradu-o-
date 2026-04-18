@@ -424,12 +424,23 @@ async function startServer() {
                 return res.redirect(finalUrl);
             }
             
-            console.error(`❌ [DOWNLOAD] Arquivo não encontrado no XML da Azure para taskId: ${taskId}`);
-            res.status(404).send(`Arquivo não encontrado. Task: ${taskId}. Verifique se o processamento terminou.`);
+            // DIAGNÓSTICO EM CASO DE ERRO:
+            // Se não achar, retorna um JSON para o usuário ver o que o servidor está vendo
+            const allBlobsFound = xml.match(/<Name>(.*?)<\/Name>/gi)?.map(n => n.replace(/<\/?Name>/gi, '')) || [];
+            
+            res.status(404).json({
+                erro: "Arquivo não localizado na Azure",
+                taskIdBuscado: taskId,
+                filenameBuscado: filename,
+                regexUtilizada: blobRegex.source,
+                arquivosDisponiveisNaAzure: allBlobsFound.slice(0, 10), // Mostra os 10 primeiros para não travar
+                totalArquivosNoStorage: allBlobsFound.length,
+                ajuda: "Se você estiver vendo esta mensagem, copie o conteúdo e envie para o suporte (Antigravity)."
+            });
         }
         catch (error) {
             console.error(`❌ [DOWNLOAD] Erro interno: ${error.message}`);
-            res.status(500).send(`Erro no servidor: ${error.message}`);
+            res.status(500).json({ error: error.message, stack: error.stack });
         }
     });
     // Vite middleware (Habilitado apenas em desenvolvimento)
