@@ -484,34 +484,51 @@ async function startServer() {
       const { userId, taskId, filename } = req.params;
       const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL!;
       
-      if (!outputUrlFull) {
-        throw new Error("Configuração VITE_AZURE_STORAGE_OUTPUT_URL ausente no .env do servidor.");
-      }
+      if (!outputUrlFull) throw new Error("Configuração de storage ausente.");
 
       const [baseUrl, sas] = outputUrlFull.split('?');
-      const blobPath = `${userId}/${taskId}/${filename}`;
-      const encodedBlobPath = `${userId}/${taskId}/${encodeURIComponent(filename)}`;
-      const downloadUrl = `${baseUrl}/${encodedBlobPath}?${sas}`;
+      const decodedFilename = decodeURIComponent(filename);
       
-      console.log(` > [DOWNLOAD PROXY] Tentando baixar: ${blobPath}`);
-      console.log(` > URL Final: ${baseUrl}/${encodedBlobPath}`);
-      
-      const response = await fetch(downloadUrl);
-      
-      if (!response.ok) {
-        console.error(` > [DOWNLOAD PROXY] Erro Azure (${response.status}): ${response.statusText}`);
-        throw new Error(`Azure Storage respondeu com status ${response.status}`);
+      // Lista de caminhos possíveis onde a Azure pode ter salvo o arquivo
+      const possiblePaths = [
+        `${userId}/${taskId}/${decodedFilename}`,              // Padrão Lumina
+        `${userId}/${taskId}/${filename}`,                     // Padrão Lumina (Encoded)
+        `pt/${userId}/${taskId}/${decodedFilename}`,           // Padrão Azure Translator
+        `${taskId}/${decodedFilename}`,                        // Sem UID
+        decodedFilename                                        // Raiz
+      ];
+
+      console.log(` > [DOWNLOAD PROXY] Iniciando busca universal para: ${decodedFilename}`);
+
+      let finalResponse: any = null;
+      let usedPath = "";
+
+      for (const path of possiblePaths) {
+        const downloadUrl = `${baseUrl}/${encodeURIComponent(path).replace(/%2F/g, '/') }?${sas}`;
+        
+        const response = await fetch(downloadUrl, { method: 'HEAD' });
+        if (response.ok) {
+          finalResponse = await fetch(downloadUrl);
+          usedPath = path;
+          break;
+        }
       }
+
+      if (!finalResponse || !finalResponse.ok) {
+        throw new Error("Arquivo físico não encontrado no Azure Storage.");
+      }
+
+      console.log(` ✅ [DOWNLOAD PROXY] Sucesso! Arquivo encontrado em: ${usedPath}`);
       
-      const contentType = response.headers.get("Content-Type") || "application/octet-stream";
+      const contentType = finalResponse.headers.get("Content-Type") || "application/octet-stream";
       res.setHeader("Content-Type", contentType);
-      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader("Content-Disposition", `attachment; filename="${decodedFilename}"`);
       
-      const arrayBuffer = await response.arrayBuffer();
+      const arrayBuffer = await finalResponse.arrayBuffer();
       res.send(Buffer.from(arrayBuffer));
       
     } catch (error: any) {
-      console.error(` > [DOWNLOAD PROXY] Erro Crítico: ${error.message}`);
+      console.error(` > [DOWNLOAD PROXY] Erro Final: ${error.message}`);
       res.status(404).send(`Erro ao baixar arquivo: ${error.message}`);
     }
   });
