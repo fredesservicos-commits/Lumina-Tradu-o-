@@ -36,7 +36,8 @@ import { Session } from '@supabase/supabase-js';
 import { LogOut, User, Mail, Lock, Loader, CreditCard } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51TMeI1JRF8C7GtHgznfR4kOLLcpyv9zDTeWtnlhoBHJt02YF3okwL8uwjzbdR3FcGWAtTsctzAkcD8XyihzSMUlR009gBxvdkU';
+const stripePromise = loadStripe(STRIPE_KEY);
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -362,7 +363,8 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
             targetLang: t.target_lang || "Portuguese",
             status: t.status || "completed",
             progress: 100,
-            resultUrl: t.result_url || `/api/download/${session.user.id}/${t.id}/${t.filename}`,
+            // Forçamos a geração dinâmica do link para evitar links antigos quebrados no banco
+            resultUrl: `/api/download/${session.user.id}/${t.id}/${t.filename}`,
             extension: t.extension || t.filename.split('.').pop()?.toLowerCase() || 'pdf',
             metrics: t.metrics
           }));
