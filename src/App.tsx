@@ -365,7 +365,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                 targetLang: "Portuguese",
                 status: "completed",
                 progress: 100,
-                resultUrl: `/api/download/standard-user/${taskId}/${filename}`,
+                resultUrl: `/api/download/${session.user.id}/${taskId}/${filename}`,
                 extension: filename.split('.').pop()?.toLowerCase() || 'pdf'
               };
             });

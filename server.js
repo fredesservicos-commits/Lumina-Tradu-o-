@@ -10,6 +10,10 @@ import { WebSocketServer, WebSocket } from "ws";
 import { createServer } from "http";
 import "dotenv/config";
 import { BlobServiceClient } from "@azure/storage-blob";
+import pdf from "pdf-parse";
+import mammoth from "mammoth";
+import { createClient } from "@supabase/supabase-js";
+import Stripe from "stripe";
 // Mapeamento de idiomas para o novo endpoint
 const LANGUAGES_MAP = {
     "Portuguese": "pt",
@@ -23,13 +27,22 @@ const LANGUAGES_MAP = {
 const azureKey = process.env.VITE_AZURE_KEY;
 const azureEndpoint = process.env.VITE_AZURE_ENDPOINT;
 const azureRegion = process.env.VITE_AZURE_REGION || "brazilsouth";
-// Configuração de pastas (similar ao PDF)
-const UPLOADS_DIR = path.join(process.cwd(), "uploads");
-const OUTPUTS_DIR = path.join(process.cwd(), "outputs");
+// Stripe Configuration
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+if (!stripe) {
+    console.warn("⚠️ AVISO: STRIPE_SECRET_KEY não encontrada no .env. As funcionalidades de pagamento estarão desativadas.");
+}
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
+import os from "os";
+// Configuração de pastas (Uso de /tmp em produção para evitar erro de Read-Only File System no Azure)
+const isProd = process.env.NODE_ENV === "production";
+const UPLOADS_DIR = isProd ? path.join(os.tmpdir(), "lumina-uploads") : path.join(process.cwd(), "uploads");
+const OUTPUTS_DIR = isProd ? path.join(os.tmpdir(), "lumina-outputs") : path.join(process.cwd(), "outputs");
 if (!fs.existsSync(UPLOADS_DIR))
-    fs.mkdirSync(UPLOADS_DIR);
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 if (!fs.existsSync(OUTPUTS_DIR))
-    fs.mkdirSync(OUTPUTS_DIR);
+    fs.mkdirSync(OUTPUTS_DIR, { recursive: true });
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, UPLOADS_DIR),
     filename: (req, file, cb) => {
@@ -38,6 +51,20 @@ const storage = multer.diskStorage({
     },
 });
 const upload = multer({ storage });
+// Supabase Admin Client (para gerenciar quotas)
+const supabaseAdmin = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY);
+async function countCharacters(filePath, mimetype) {
+    const fileBuffer = fs.readFileSync(filePath);
+    if (mimetype === "application/pdf") {
+        const data = await pdf(fileBuffer);
+        return data.text.replace(/\s+/g, "").length;
+    }
+    if (mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        const data = await mammoth.extractRawText({ buffer: fileBuffer });
+        return data.value.replace(/\s+/g, "").length;
+    }
+    return 0;
+}
 async function startServer() {
     const app = express();
     const httpServer = createServer(app);
@@ -86,7 +113,60 @@ async function startServer() {
             const file = req.file;
             if (!file)
                 return res.status(400).json({ error: "No file uploaded" });
-            const userId = "standard-user"; // Idealmente viria do payload/auth
+            // 0. Autenticação e Verificação de Quota
+            const authHeader = req.headers.authorization;
+            if (!authHeader)
+                return res.status(401).json({ error: "Não autenticado" });
+            const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+            if (authError || !user)
+                return res.status(401).json({ error: "Sessão inválida" });
+            const { data: profile, error: dbError } = await supabaseAdmin
+                .from("profiles")
+                .select("*")
+                .eq("id", user.id)
+                .single();
+            if (dbError || !profile) {
+                console.error(` > [DEBUG] Perfil não encontrado para o usuário: ${user.id}`);
+                console.error(` > [DEBUG] Erro do Banco de Dados:`, dbError);
+                console.warn(` > [DICA] Certifique-se de que a SUPABASE_SERVICE_ROLE_KEY está correta no seu arquivo .env.`);
+                return res.status(404).json({
+                    error: "Perfil não encontrado",
+                    details: dbError?.message || "O usuário existe no Auth mas não tem um registro na tabela profiles."
+                });
+            }
+            // Contagem de caracteres
+            const charCount = await countCharacters(file.path, file.mimetype);
+            console.log(` > Proxy: Arquivo detectado com ${charCount} caracteres.`);
+            // Lógica de Proteção de Margem e Quotas Lumina
+            const isFreePlan = profile.plan_type === "free" || !profile.plan_type;
+            // 1. Limite por ARQUIVO (Plano Free: 5000 chars)
+            if (isFreePlan && charCount > 5000) {
+                if (fs.existsSync(file.path))
+                    fs.unlinkSync(file.path);
+                return res.status(403).json({
+                    error: "Limite do Plano Free excedido",
+                    details: `O plano gratuito permite arquivos de até 5.000 caracteres. Este arquivo tem ${charCount}. Faça o upgrade para o Plano Professional!`
+                });
+            }
+            // 2. Limite de FILES por MÊS (Plano Free: 2 arquivos)
+            if (isFreePlan && profile.files_this_month >= 2) {
+                if (fs.existsSync(file.path))
+                    fs.unlinkSync(file.path);
+                return res.status(403).json({
+                    error: "Limite mensal atingido",
+                    details: `Você já traduziu o limite de 2 arquivos mensais do plano gratuito. Faça o upgrade para continuar!`
+                });
+            }
+            // 3. Limite de QUOTA TOTAL (Para planos pagos)
+            if (profile.characters_used + charCount > profile.quota_limit) {
+                if (fs.existsSync(file.path))
+                    fs.unlinkSync(file.path);
+                return res.status(403).json({
+                    error: "Limite de quota atingido",
+                    details: `Seu plano atual permite mais ${profile.quota_limit - profile.characters_used} caracteres. Este arquivo requer ${charCount}. Adquira créditos avulsos!`
+                });
+            }
+            const userId = user.id;
             const taskId = uuidv4().slice(0, 8);
             const targetLangCode = LANGUAGES_MAP[targetLang] || "pt";
             const inputUrlFull = process.env.VITE_AZURE_STORAGE_INPUT_URL;
@@ -156,6 +236,18 @@ async function startServer() {
                     console.warn(` > ⚠️ Auto-cleanup warning: ${cleanupErr.message}`);
                 }
             }, 30 * 60 * 1000);
+            // 3. Atualizar quota no Supabase após sucesso no disparo
+            await supabaseAdmin.rpc('increment_chars', {
+                user_id: userId,
+                amount: charCount
+            });
+            // 4. Incrementar contador de arquivos para plano Free
+            if (isFreePlan) {
+                await supabaseAdmin
+                    .from('profiles')
+                    .update({ files_this_month: (profile.files_this_month || 0) + 1 })
+                    .eq('id', userId);
+            }
         }
         catch (error) {
             console.error(` > Erro Crítico no Proxy: ${error.message}`);
@@ -210,6 +302,86 @@ async function startServer() {
             res.status(500).json({ error: error.message });
         }
     });
+    // --- STRIPE ENDPOINTS ---
+    app.post("/api/create-checkout-session", async (req, res) => {
+        try {
+            if (!stripe) {
+                return res.status(500).json({ error: "Stripe não está configurado no servidor. Verifique o seu .env." });
+            }
+            const { priceId, userId, planType } = req.body;
+            if (!priceId || !userId) {
+                return res.status(400).json({ error: "Price ID e User ID são obrigatórios" });
+            }
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ["card"],
+                line_items: [{ price: priceId, quantity: 1 }],
+                mode: "payment", // Alterado para aceitar preços únicos (One-time) em vez de assinaturas
+                success_url: `${req.headers.origin}/?success=true&session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${req.headers.origin}/?canceled=true`,
+                metadata: {
+                    userId,
+                    planType, // 'professional', 'elite', 'business' ou 'credits'
+                },
+            });
+            res.json({ url: session.url });
+        }
+        catch (error) {
+            console.error("Erro ao criar sessão de checkout:", error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+    app.post("/api/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+        if (!stripe)
+            return res.status(500).send("Stripe não configurado");
+        const sig = req.headers["stripe-signature"];
+        let event;
+        try {
+            event = stripe.webhooks.constructEvent(req.body, sig, WEBHOOK_SECRET);
+        }
+        catch (err) {
+            console.error(`Webhook Error: ${err.message}`);
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
+        if (event.type === "checkout.session.completed") {
+            const session = event.data.object;
+            const { userId, planType } = session.metadata;
+            console.log(`✅ Pagamento confirmado para usuário ${userId} - Plano: ${planType}`);
+            // Mapeamento de Quotas baseadas no Manual de Monetização
+            const QUOTAS = {
+                'professional': 400000,
+                'elite': 850000,
+                'business': 1800000,
+                'credits': 50000, // Bloco de 50k
+            };
+            const charIncrement = QUOTAS[planType] || 0;
+            if (planType === "credits") {
+                // Apenas adiciona à quota existente
+                await supabaseAdmin.rpc('increment_quota_limit', {
+                    user_id: userId,
+                    amount: charIncrement
+                });
+            }
+            else {
+                console.log(` > Aplicando atualização de plano: ${planType} para o limite ${charIncrement}`);
+                const { error: updateError } = await supabaseAdmin
+                    .from("profiles")
+                    .update({
+                    plan_type: planType,
+                    quota_limit: charIncrement,
+                    characters_used: 0,
+                    files_this_month: 0
+                })
+                    .eq("id", userId);
+                if (updateError) {
+                    console.error(` ❌ Erro ao atualizar perfil no Supabase:`, updateError);
+                }
+                else {
+                    console.log(` ✨ Perfil atualizado com sucesso no banco de dados.`);
+                }
+            }
+        }
+        res.json({ received: true });
+    });
     // PROXY DE DOWNLOAD: Resolve o problema de env variables no frontend
     app.get("/api/download/:userId/:taskId/:filename", async (req, res) => {
         try {
@@ -235,7 +407,7 @@ async function startServer() {
             res.status(404).send("Arquivo não encontrado ou erro no servidor.");
         }
     });
-    // Vite middleware
+    // Vite middleware (Habilitado apenas em desenvolvimento)
     if (process.env.NODE_ENV !== "production") {
         const vite = await createViteServer({
             server: { middlewareMode: true },

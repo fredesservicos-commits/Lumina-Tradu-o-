@@ -345,13 +345,19 @@ async function startServer() {
       const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
       
       console.log(`--- Proxy: Listando Arquivos de Saída ---`);
+      console.log(` > URL: ${baseUrl}`);
+      
       const response = await fetch(listUrl);
       const xml = await response.text();
       
       const files = xml.match(/<Name>(.*?)<\/Name>/g) || [];
       const fileNames = files.map(f => f.replace(/<\/?Name>/g, ''));
       
-      console.log(` > Encontrados ${fileNames.length} arquivos.`);
+      console.log(` > Encontrados ${fileNames.length} arquivos totais no container.`);
+      if (fileNames.length > 0) {
+        console.log(` > Exemplo de arquivo: ${fileNames[0]}`);
+      }
+      
       res.json({ files: fileNames });
     } catch (error: any) {
       console.error(` > Erro ao listar outputs: ${error.message}`);
@@ -452,19 +458,27 @@ async function startServer() {
     try {
       const { userId, taskId, filename } = req.params;
       const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL!;
-      const [baseUrl, sas] = outputUrlFull.split('?');
       
+      if (!outputUrlFull) {
+        throw new Error("Configuração VITE_AZURE_STORAGE_OUTPUT_URL ausente no .env do servidor.");
+      }
+
+      const [baseUrl, sas] = outputUrlFull.split('?');
       const blobPath = `${userId}/${taskId}/${filename}`;
-      // Encode o filename para a requisição interna à Azure, mas mantém a estrutura de pastas
       const encodedBlobPath = `${userId}/${taskId}/${encodeURIComponent(filename)}`;
       const downloadUrl = `${baseUrl}/${encodedBlobPath}?${sas}`;
       
-      console.log(` > Proxy Download: ${blobPath} (Encoded: ${encodedBlobPath})`);
+      console.log(` > [DOWNLOAD PROXY] Tentando baixar: ${blobPath}`);
+      console.log(` > URL Final: ${baseUrl}/${encodedBlobPath}`);
       
       const response = await fetch(downloadUrl);
-      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
       
-      const contentType = response.headers.get("Content-Type") || "application/pdf";
+      if (!response.ok) {
+        console.error(` > [DOWNLOAD PROXY] Erro Azure (${response.status}): ${response.statusText}`);
+        throw new Error(`Azure Storage respondeu com status ${response.status}`);
+      }
+      
+      const contentType = response.headers.get("Content-Type") || "application/octet-stream";
       res.setHeader("Content-Type", contentType);
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       
@@ -472,8 +486,8 @@ async function startServer() {
       res.send(Buffer.from(arrayBuffer));
       
     } catch (error: any) {
-      console.error(` > Erro no Proxy Download: ${error.message}`);
-      res.status(404).send("Arquivo não encontrado ou erro no servidor.");
+      console.error(` > [DOWNLOAD PROXY] Erro Crítico: ${error.message}`);
+      res.status(404).send(`Erro ao baixar arquivo: ${error.message}`);
     }
   });
 
