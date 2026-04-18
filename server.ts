@@ -475,8 +475,8 @@ async function startServer() {
     }
   });
 
-  // Vite middleware (FORÇADO PARA DESENVOLVIMENTO)
-  if (true || process.env.NODE_ENV !== "production") {
+  // Vite middleware (Habilitado apenas em desenvolvimento)
+  if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
