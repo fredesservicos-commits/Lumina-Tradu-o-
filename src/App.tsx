@@ -364,7 +364,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
             status: t.status || "completed",
             progress: 100,
             // O segredo está aqui: usar t.task_id para o caminho da pasta
-            resultUrl: `/api/download/${session.user.id}/${t.task_id || t.id}/${t.filename}`,
+            resultUrl: `/api/download/${session.user.id}/${t.task_id || t.id}/${encodeURIComponent(t.filename)}`,
             extension: t.extension || t.filename.split('.').pop()?.toLowerCase() || 'pdf',
             metrics: t.metrics
           }));
@@ -389,7 +389,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                 targetLang: "Portuguese",
                 status: "completed",
                 progress: 100,
-                resultUrl: `/api/download/${session.user.id}/${taskId}/${filename}`,
+                resultUrl: `/api/download/${session.user.id}/${taskId}/${encodeURIComponent(filename)}`,
                 extension: filename.split('.').pop()?.toLowerCase() || 'pdf'
               };
             });
@@ -786,7 +786,8 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                             href={task.resultUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="flex items-center gap-3 px-6 py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl transition-all shadow-xl shadow-primary/20 group/dl no-underline"
+                            download={task.filename}
+                            className="flex items-center gap-3 px-6 py-4 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl transition-all shadow-xl shadow-primary/20 group/dl no-underline pointer-events-auto relative z-10"
                           >
                              <Download size={20} className="group-hover/dl:translate-y-0.5 transition-transform" />
                              <span className="text-xs uppercase tracking-widest">Baixar</span>

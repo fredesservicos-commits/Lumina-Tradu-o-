@@ -481,32 +481,39 @@ async function startServer() {
   // PROXY DE DOWNLOAD: O "Detetive" - Busca o arquivo real listando os blobs da Azure
   app.get("/api/download/:userId/:taskId/:filename", async (req, res) => {
     try {
-      const { taskId, filename } = req.params;
+      const { userId, taskId, filename } = req.params;
       const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL!;
       if (!outputUrlFull) throw new Error("Configuração de storage ausente.");
 
       const [baseUrl, sas] = outputUrlFull.split('?');
-      const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
-      const decodedFilename = decodeURIComponent(filename).toLowerCase();
-      const shortTaskId = taskId.slice(0, 8); // A Azure costuma usar os primeiros 8 caracteres
+      const decodedFilename = decodeURIComponent(filename);
+      const shortTaskId = taskId.slice(0, 8); 
 
-      console.log(` > [DOWNLOAD PROXY] Buscando arquivo para Task: ${taskId} (${shortTaskId})`);
+      console.log(` > [DOWNLOAD PROXY] Buscando arquivo para User: ${userId}, Task: ${taskId}`);
 
-      // 1. Listar todos os arquivos para encontrar o nome real
+      // 1. Listar apenas blobs que começam com o prefixo da tarefa para performance e segurança
+      const listUrl = `${baseUrl}?restype=container&comp=list&prefix=${userId}/${taskId}/&${sas}`;
+      
       const listResponse = await fetch(listUrl);
+      if (!listResponse.ok) throw new Error(`Erro ao listar Azure: ${listResponse.status}`);
+      
       const xml = await listResponse.text();
       const blobs = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
       const blobNames = blobs.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
 
-      // 2. Procurar o melhor match (que contenha o taskId e o nome do arquivo)
-      const realBlobName = blobNames.find(name => {
+      // 2. Procurar o melhor match dentro da pasta da tarefa
+      let realBlobName = blobNames.find(name => {
         const n = name.toLowerCase();
-        return (n.includes(taskId.toLowerCase()) || n.includes(shortTaskId.toLowerCase())) && 
-               n.includes(decodedFilename);
+        return n.includes(decodedFilename.toLowerCase());
       });
 
+      // Se não achar com o nome exato, tentar o taskId (caso a Azure mude o nome)
       if (!realBlobName) {
-        console.error(` > [DOWNLOAD PROXY] Arquivo não encontrado na listagem da Azure.`);
+        realBlobName = blobNames.find(name => name.includes(taskId) || name.includes(shortTaskId));
+      }
+
+      if (!realBlobName) {
+        console.error(` > [DOWNLOAD PROXY] Arquivo não encontrado no prefixo ${userId}/${taskId}/`);
         throw new Error("Arquivo não encontrado no Storage.");
       }
 
@@ -516,18 +523,26 @@ async function startServer() {
       const downloadUrl = `${baseUrl}/${encodeURIComponent(realBlobName).replace(/%2F/g, '/') }?${sas}`;
       const downloadResponse = await fetch(downloadUrl);
 
-      if (!downloadResponse.ok) throw new Error(`Erro ao baixar da Azure: ${downloadResponse.status}`);
+      if (!downloadResponse.ok) throw new Error(`Erro ao baixar blob da Azure: ${downloadResponse.status}`);
 
       const contentType = downloadResponse.headers.get("Content-Type") || "application/octet-stream";
+      
+      // Cabeçalhos robustos para Mobile (RFC 5987) e Cache Control
+      const cleanFilename = realBlobName.split('/').pop() || decodedFilename;
       res.setHeader("Content-Type", contentType);
-      res.setHeader("Content-Disposition", `attachment; filename="${realBlobName.split('/').pop()}"`);
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      
+      // Suporte a caracteres especiais no nome do arquivo (importante para smartphones)
+      res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(cleanFilename)}"; filename*=UTF-8''${encodeURIComponent(cleanFilename)}`);
       
       const arrayBuffer = await downloadResponse.arrayBuffer();
       res.send(Buffer.from(arrayBuffer));
       
     } catch (error: any) {
       console.error(` > [DOWNLOAD PROXY] Erro Final: ${error.message}`);
-      res.status(404).send(`Erro ao baixar arquivo: ${error.message}`);
+      res.status(404).json({ error: error.message });
     }
   });
 

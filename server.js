@@ -284,37 +284,49 @@ async function startServer() {
             res.status(500).json({ error: error.message });
         }
     });
+    // Rota de Diagnóstico: Ver o que a Azure está respondendo de verdade
+    app.get("/api/debug/storage", async (req, res) => {
+        try {
+            const outputUrl = process.env.VITE_AZURE_STORAGE_OUTPUT_URL || "";
+            if (!outputUrl)
+                return res.json({ error: "Variável VITE_AZURE_STORAGE_OUTPUT_URL não definida" });
+            const [baseUrl, sas] = outputUrl.split('?');
+            const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
+            const response = await fetch(listUrl);
+            const xml = await response.text();
+            res.json({
+                status: response.status,
+                statusText: response.statusText,
+                baseUrl: baseUrl,
+                xmlPreview: xml.slice(0, 500),
+                fullXml: xml
+            });
+        }
+        catch (err) {
+            res.json({ error: err.message });
+        }
+    });
     app.get("/api/azure/list-outputs", async (req, res) => {
         try {
             const outputUrl = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
             const [baseUrl, sas] = outputUrl.split('?');
             const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
-            console.log(`--- Proxy: Listando Arquivos de Saída ---`);
+            console.log(`--- Proxy: Sincronizando com Azure Storage ---`);
             const response = await fetch(listUrl);
+            if (!response.ok) {
+                console.error(` > Erro Azure (${response.status}): ${response.statusText}`);
+                return res.json({ files: [], error: `Azure error ${response.status}` });
+            }
             const xml = await response.text();
-            const files = xml.match(/<Name>(.*?)<\/Name>/g) || [];
-            const fileNames = files.map(f => f.replace(/<\/?Name>/g, ''));
-            console.log(` > Encontrados ${fileNames.length} arquivos.`);
+            // Regex mais resiliente para capturar nomes capturando case-insensitive e espaços
+            const files = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
+            const fileNames = files.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
+            console.log(` > Sincronização concluída. ${fileNames.length} blobs encontrados.`);
             res.json({ files: fileNames });
         }
         catch (error) {
-            console.error(` > Erro ao listar outputs: ${error.message}`);
+            console.error(` > Erro Crítico na Listagem: ${error.message}`);
             res.status(500).json({ error: error.message });
-        }
-    });
-
-    // ROTA DE DIAGNÓSTICO: Mostra exatamente o que tem na Azure
-    app.get("/api/debug/storage", async (req, res) => {
-        try {
-            const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
-            if (!outputUrlFull) return res.status(500).json({ error: "Env var ausente" });
-            const [baseUrl, sas] = outputUrlFull.split('?');
-            const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
-            const response = await fetch(listUrl);
-            const xml = await response.text();
-            res.json({ status: response.status, baseUrl, fullXml: xml });
-        } catch (err) {
-            res.status(500).json({ error: err.message });
         }
     });
     // --- STRIPE ENDPOINTS ---
@@ -328,7 +340,6 @@ async function startServer() {
                 return res.status(400).json({ error: "Price ID e User ID são obrigatórios" });
             }
             const session = await stripe.checkout.sessions.create({
-                payment_method_types: ["card"],
                 line_items: [{ price: priceId, quantity: 1 }],
                 mode: "payment", // Alterado para aceitar preços únicos (One-time) em vez de assinaturas
                 success_url: `${req.headers.origin}/?success=true&session_id={CHECKOUT_SESSION_ID}`,
@@ -397,50 +408,59 @@ async function startServer() {
         }
         res.json({ received: true });
     });
-    // PROXY DE DOWNLOAD: Versão de Alta Compatibilidade (Azure Windows + Node 20)
+    // PROXY DE DOWNLOAD: O "Detetive" - Busca o arquivo real listando os blobs da Azure
     app.get("/api/download/:userId/:taskId/:filename", async (req, res) => {
-        const { taskId, filename } = req.params;
-        console.log(`[DOWNLOAD] Iniciando busca para task: ${taskId}`);
-        
         try {
+            const { userId, taskId, filename } = req.params;
             const outputUrlFull = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
-            if (!outputUrlFull) return res.status(500).send("Configuração de storage ausente no Azure.");
-            
+            if (!outputUrlFull)
+                throw new Error("Configuração de storage ausente.");
             const [baseUrl, sas] = outputUrlFull.split('?');
-            const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
-            
-            // Busca simplificada (sem depender de fetch global se possível)
-            const response = await fetch(listUrl);
-            const xml = await response.text();
-            
-            // Regex ultra-simples para achar o link
-            const blobRegex = new RegExp(`<Name>([^<]*(?:${taskId}|${taskId.slice(0, 8)})[^<]*${filename.split('.')[0]}[^<]*)</Name>`, "i");
-            const match = xml.match(blobRegex);
-            
-            if (match && match[1]) {
-                const realBlobName = match[1];
-                const finalUrl = `${baseUrl}/${realBlobName.split('/').map(encodeURIComponent).join('/')}?${sas}`;
-                console.log(`✅ [DOWNLOAD] Sucesso! Redirecionando para: ${realBlobName}`);
-                return res.redirect(finalUrl);
-            }
-            
-            // DIAGNÓSTICO EM CASO DE ERRO:
-            // Se não achar, retorna um JSON para o usuário ver o que o servidor está vendo
-            const allBlobsFound = xml.match(/<Name>(.*?)<\/Name>/gi)?.map(n => n.replace(/<\/?Name>/gi, '')) || [];
-            
-            res.status(404).json({
-                erro: "Arquivo não localizado na Azure",
-                taskIdBuscado: taskId,
-                filenameBuscado: filename,
-                regexUtilizada: blobRegex.source,
-                arquivosDisponiveisNaAzure: allBlobsFound.slice(0, 10), // Mostra os 10 primeiros para não travar
-                totalArquivosNoStorage: allBlobsFound.length,
-                ajuda: "Se você estiver vendo esta mensagem, copie o conteúdo e envie para o suporte (Antigravity)."
+            const decodedFilename = decodeURIComponent(filename);
+            const shortTaskId = taskId.slice(0, 8);
+            console.log(` > [DOWNLOAD PROXY] Buscando arquivo para User: ${userId}, Task: ${taskId}`);
+            // 1. Listar apenas blobs que começam com o prefixo da tarefa para performance e segurança
+            const listUrl = `${baseUrl}?restype=container&comp=list&prefix=${userId}/${taskId}/&${sas}`;
+            const listResponse = await fetch(listUrl);
+            if (!listResponse.ok)
+                throw new Error(`Erro ao listar Azure: ${listResponse.status}`);
+            const xml = await listResponse.text();
+            const blobs = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
+            const blobNames = blobs.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
+            // 2. Procurar o melhor match dentro da pasta da tarefa
+            let realBlobName = blobNames.find(name => {
+                const n = name.toLowerCase();
+                return n.includes(decodedFilename.toLowerCase());
             });
+            // Se não achar com o nome exato, tentar o taskId (caso a Azure mude o nome)
+            if (!realBlobName) {
+                realBlobName = blobNames.find(name => name.includes(taskId) || name.includes(shortTaskId));
+            }
+            if (!realBlobName) {
+                console.error(` > [DOWNLOAD PROXY] Arquivo não encontrado no prefixo ${userId}/${taskId}/`);
+                throw new Error("Arquivo não encontrado no Storage.");
+            }
+            console.log(` ✅ [DOWNLOAD PROXY] Arquivo localizado: ${realBlobName}`);
+            // 3. Fazer o download do arquivo real encontrado
+            const downloadUrl = `${baseUrl}/${encodeURIComponent(realBlobName).replace(/%2F/g, '/')}?${sas}`;
+            const downloadResponse = await fetch(downloadUrl);
+            if (!downloadResponse.ok)
+                throw new Error(`Erro ao baixar blob da Azure: ${downloadResponse.status}`);
+            const contentType = downloadResponse.headers.get("Content-Type") || "application/octet-stream";
+            // Cabeçalhos robustos para Mobile (RFC 5987) e Cache Control
+            const cleanFilename = realBlobName.split('/').pop() || decodedFilename;
+            res.setHeader("Content-Type", contentType);
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.setHeader("Pragma", "no-cache");
+            res.setHeader("Expires", "0");
+            // Suporte a caracteres especiais no nome do arquivo (importante para smartphones)
+            res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(cleanFilename)}"; filename*=UTF-8''${encodeURIComponent(cleanFilename)}`);
+            const arrayBuffer = await downloadResponse.arrayBuffer();
+            res.send(Buffer.from(arrayBuffer));
         }
         catch (error) {
-            console.error(`❌ [DOWNLOAD] Erro interno: ${error.message}`);
-            res.status(500).json({ error: error.message, stack: error.stack });
+            console.error(` > [DOWNLOAD PROXY] Erro Final: ${error.message}`);
+            res.status(404).json({ error: error.message });
         }
     });
     // Vite middleware (Habilitado apenas em desenvolvimento)
