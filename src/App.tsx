@@ -732,7 +732,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   onMouseMove={handleMouseMove}
-                  className="glass-card rounded-[2.5rem] p-8 flex flex-col justify-between h-[280px] group relative"
+                  className="glass-card rounded-[2.5rem] p-7 md:p-8 flex flex-col justify-between min-h-[220px] h-full group relative"
                 >
                   <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
                     <button onClick={() => deleteTask(task.id)} className="text-slate-500 hover:text-red-400 p-2 bg-white/5 rounded-xl border border-white/5">
@@ -773,10 +773,14 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                     ) : task.status === 'completed' ? (
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">
-                           <span className="text-xs font-black text-accent uppercase tracking-[0.2em] flex items-center gap-2 mb-1">
-                             <CheckCircle2 size={14} className="fill-accent/20" /> Pronto
+                           <span className="text-[11px] font-black text-accent uppercase tracking-[0.2em] flex items-center gap-2 mb-1.5 drop-shadow-md">
+                             <CheckCircle2 size={15} className="fill-accent/20" /> PRONTO
                            </span>
-                           <span className="text-[10px] font-bold text-slate-500">{task.metrics?.characters.toLocaleString()} caracteres analizados</span>
+                           {task.metrics?.characters ? (
+                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{task.metrics.characters.toLocaleString()} caracteres analisados</span>
+                           ) : (
+                             <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest">Status Finalizado</span>
+                           )}
                         </div>
                         <div className="flex gap-2">
                           <button onClick={() => setActiveComparison(task)} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all text-slate-300">
