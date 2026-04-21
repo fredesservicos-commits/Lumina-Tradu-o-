@@ -364,11 +364,17 @@ async function startServer() {
 
   app.get("/api/azure/list-outputs", async (req, res) => {
     try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ error: "Não autenticado" });
+
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (authError || !user) return res.status(401).json({ error: "Sessão inválida" });
+
       const outputUrl = process.env.VITE_AZURE_STORAGE_OUTPUT_URL!;
       const [baseUrl, sas] = outputUrl.split('?');
-      const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
+      const listUrl = `${baseUrl}?restype=container&comp=list&prefix=${user.id}/&${sas}`;
       
-      console.log(`--- Proxy: Sincronizando com Azure Storage ---`);
+      console.log(`--- Proxy: Sincronizando com Azure Storage para usuário ${user.id} ---`);
       const response = await fetch(listUrl);
       
       if (!response.ok) {
@@ -382,7 +388,7 @@ async function startServer() {
       const files = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
       const fileNames = files.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
       
-      console.log(` > Sincronização concluída. ${fileNames.length} blobs encontrados.`);
+      console.log(` > Sincronização concluída. ${fileNames.length} blobs encontrados para o usuário.`);
       res.json({ files: fileNames });
     } catch (error: any) {
       console.error(` > Erro Crítico na Listagem: ${error.message}`);

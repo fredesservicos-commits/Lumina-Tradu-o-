@@ -374,7 +374,11 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
         }
 
         // Sincronização secundária com Azure (para arquivos órfãos)
-        const response = await fetch("/api/azure/list-outputs");
+        const response = await fetch("/api/azure/list-outputs", {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
         const data = await response.json();
         if (data.files && Array.isArray(data.files)) {
           const historicalTasks: TranslationTask[] = data.files
