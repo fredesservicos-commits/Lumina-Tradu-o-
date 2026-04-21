@@ -14,6 +14,7 @@ import pdf from "pdf-parse";
 import mammoth from "mammoth";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 
 // Mapeamento de idiomas para o novo endpoint
@@ -543,7 +544,50 @@ async function startServer() {
       // Suporte a caracteres especiais no nome do arquivo (importante para smartphones)
       res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(cleanFilename)}"; filename*=UTF-8''${encodeURIComponent(cleanFilename)}`);
       
-      const arrayBuffer = await downloadResponse.arrayBuffer();
+      let arrayBuffer = await downloadResponse.arrayBuffer();
+
+      // --- INÍCIO DA LÓGICA DE MARCA D'ÁGUA ---
+      if (cleanFilename.toLowerCase().endsWith('.pdf')) {
+        try {
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("plan_type")
+            .eq("id", userId)
+            .single();
+
+          const isFreePlan = !profile || profile.plan_type === "free";
+
+          if (isFreePlan) {
+            console.log(` > [WATERMARK] Aplicando marca d'água no PDF para o usuário Free: ${userId}`);
+            const pdfDoc = await PDFDocument.load(arrayBuffer);
+            const pages = pdfDoc.getPages();
+            const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+            
+            for (const page of pages) {
+              const { width, height } = page.getSize();
+              const text = "Lumina PDF Translator";
+              const textSize = 10;
+              const textWidth = font.widthOfTextAtSize(text, textSize);
+              
+              page.drawText(text, {
+                x: (width - textWidth) / 2,
+                y: 15,
+                size: textSize,
+                font: font,
+                color: rgb(0.5, 0.5, 0.5), // Cinza
+                opacity: 0.5
+              });
+            }
+            const pdfBytes = await pdfDoc.save();
+            arrayBuffer = pdfBytes.buffer; // Usa o novo ArrayBuffer
+          }
+        } catch (watermarkError: any) {
+          console.error(` > [ERRO WATERMARK] Falha ao aplicar marca d'água: ${watermarkError.message}`);
+          // Em caso de erro na marca d'água, ignora e entrega o original para não quebrar o download
+        }
+      }
+      // --- FIM DA LÓGICA DE MARCA D'ÁGUA ---
+
       res.send(Buffer.from(arrayBuffer));
       
     } catch (error: any) {
