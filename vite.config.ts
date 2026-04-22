@@ -20,6 +20,23 @@ export default defineConfig(({mode}) => {
           theme_color: '#E4E3E0',
           background_color: '#E4E3E0',
           display: 'standalone',
+          lang: 'pt-BR',
+          dir: 'ltr',
+          categories: ['productivity', 'utilities', 'business'],
+          screenshots: [
+            {
+              src: 'screenshots/screenshot-desktop-1.png',
+              sizes: '1280x720',
+              type: 'image/png',
+              form_factor: 'wide'
+            },
+            {
+              src: 'screenshots/screenshot-mobile-1.png',
+              sizes: '720x1280',
+              type: 'image/png',
+              form_factor: 'narrow'
+            }
+          ],
           icons: [
             {
               src: 'icons/icon-192.png',
