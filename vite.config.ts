@@ -20,18 +20,20 @@ export default defineConfig(({mode}) => {
           theme_color: '#E4E3E0',
           background_color: '#E4E3E0',
           display: 'standalone',
+          id: '/?source=pwa',
+          orientation: 'any',
           lang: 'pt-BR',
           dir: 'ltr',
           categories: ['productivity', 'utilities', 'business'],
           screenshots: [
             {
-              src: 'screenshots/screenshot-desktop-1.png',
+              src: '/screenshots/screenshot-desktop-1.png',
               sizes: '1280x720',
               type: 'image/png',
               form_factor: 'wide'
             },
             {
-              src: 'screenshots/screenshot-mobile-1.png',
+              src: '/screenshots/screenshot-mobile-1.png',
               sizes: '720x1280',
               type: 'image/png',
               form_factor: 'narrow'
@@ -39,17 +41,17 @@ export default defineConfig(({mode}) => {
           ],
           icons: [
             {
-              src: 'icons/icon-192.png',
+              src: '/icons/icon-192.png',
               sizes: '192x192',
               type: 'image/png'
             },
             {
-              src: 'icons/icon-512.png',
+              src: '/icons/icon-512.png',
               sizes: '512x512',
               type: 'image/png'
             },
             {
-              src: 'icons/icon-maskable-512.png',
+              src: '/icons/icon-maskable-512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable'
