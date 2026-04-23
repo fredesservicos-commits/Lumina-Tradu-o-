@@ -43,12 +43,14 @@ export default defineConfig(({mode}) => {
             {
               src: 'icons/icon-192.png.png',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
               src: 'icons/icon-512.png.png',
               sizes: '512x512',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
               src: 'icons/icon-maskable-512.png',
