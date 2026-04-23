@@ -14,8 +14,8 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
         manifest: {
-          name: 'Lumina PDF Translation',
-          short_name: 'Lumina',
+          name: 'Lumina PDF Translator',
+          short_name: 'Lumina Translator',
           description: 'Zero Intervention PDF Translation Engine',
           theme_color: '#E4E3E0',
           background_color: '#E4E3E0',
