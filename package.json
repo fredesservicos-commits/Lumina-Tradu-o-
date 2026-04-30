@@ -6,6 +6,9 @@
   "overrides": {
     "serialize-javascript": ">=7.0.3"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "tsx server.ts",
     "build:ui": "vite build",
