@@ -892,10 +892,10 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             {[
-              { id: 'free', name: "Free", price: "0,00", quota: "5.000 (p/ arquivo)", pages: "~2 files/mês", color: "slate", perks: ["Azure Neural Engine", "Limite 5k chars/arq", "Máx 2 arquivos/mês"] },
-              { id: 'professional', name: "Professional", price: "49,90", quota: "400.000", pages: "~160 páginas", color: "primary", perks: ["Básico para Freelancers", "Margem Blindada", "R$ 0,18 excedente"], active: true },
+              { id: 'free', name: "Grátis", price: "0,00", quota: "5.000 (p/ arquivo)", pages: "~2 files/mês", color: "slate", perks: ["Azure Neural Engine", "Limite 5k chars/arq", "Máx 2 arquivos/mês"] },
+              { id: 'professional', name: "Profissional", price: "49,90", quota: "400.000", pages: "~160 páginas", color: "primary", perks: ["Básico para Freelancers", "Margem Blindada", "R$ 0,18 excedente"], active: true },
               { id: 'elite', name: "Elite", price: "99,00", quota: "850.000", pages: "~340 páginas", color: "accent", perks: ["Alta Frequência", "Suporte Prioritário", "R$ 0,15 excedente"] },
-              { id: 'business', name: "Business", price: "199,00", quota: "1.8M", pages: "~720 páginas", color: "white", perks: ["Fluxo Corporativo", "Times de Trabalho", "R$ 0,12 excedente"] },
+              { id: 'business', name: "Negócios", price: "199,00", quota: "1.8M", pages: "~720 páginas", color: "white", perks: ["Fluxo Corporativo", "Times de Trabalho", "R$ 0,12 excedente"] },
               { id: 'credits', name: "Créditos Avulsos", price: "12,00", quota: "50.000", pages: "Acumulativos", color: "emerald", perks: ["Não expiram nunca", "Uso imediato", "Compra por bloco"], isCredits: true }
             ].map((plan, i) => (
               <motion.div
