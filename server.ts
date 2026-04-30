@@ -24,7 +24,17 @@ const LANGUAGES_MAP: Record<string, string> = {
   "Chinese": "zh",
   "French": "fr",
   "German": "de",
-  "Spanish": "es"
+  "Spanish": "es",
+  "Italian": "it",
+  "Russian": "ru",
+  "Arabic": "ar",
+  "Korean": "ko",
+  "Hindi": "hi",
+  "Turkish": "tr",
+  "Dutch": "nl",
+  "Indonesian": "id",
+  "Vietnamese": "vi",
+  "Thai": "th"
 };
 
 // Azure configurations (will be used by the server instead of the browser later)

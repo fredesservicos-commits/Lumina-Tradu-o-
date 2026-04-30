@@ -51,7 +51,17 @@ const LANGUAGES_MAP: Record<string, string> = {
   "Chinese": "zh",
   "French": "fr",
   "German": "de",
-  "Spanish": "es"
+  "Spanish": "es",
+  "Italian": "it",
+  "Russian": "ru",
+  "Arabic": "ar",
+  "Korean": "ko",
+  "Hindi": "hi",
+  "Turkish": "tr",
+  "Dutch": "nl",
+  "Indonesian": "id",
+  "Vietnamese": "vi",
+  "Thai": "th"
 };
 
 const FILE_ICONS: Record<string, any> = {
@@ -331,6 +341,35 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
   const [selectedLang, setSelectedLang] = useState("Portuguese");
   const [activeComparison, setActiveComparison] = useState<TranslationTask | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const prevTasksRef = useRef<TranslationTask[]>([]);
+  
+  // Solicitar permissão de notificação
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Monitorar mudanças nas tasks para notificações
+  useEffect(() => {
+    tasks.forEach(task => {
+      const prevTask = prevTasksRef.current.find(t => t.id === task.id);
+      if (prevTask && prevTask.status !== task.status) {
+        if (task.status === 'completed') {
+          new Notification("Lumina PDF", {
+            body: `Tradução concluída: ${task.filename}`,
+            icon: "/icons/icon-192.png.png"
+          });
+        } else if (task.status === 'error') {
+          new Notification("Lumina PDF", {
+            body: `Erro na tradução: ${task.filename}`,
+            icon: "/icons/icon-192.png.png"
+          });
+        }
+      }
+    });
+    prevTasksRef.current = tasks;
+  }, [tasks]);
   
   // Dynamic card reflection logic
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -344,7 +383,6 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
 
   useEffect(() => {
     console.log("🛠️ LUMINA DASHBOARD V4.5 CARREGADO");
-    // alert("SISTEMA ATUALIZADO (v4.3)"); // Desativado para não ser invasivo, mas o console vai logar
     
     const syncHistory = async () => {
       setIsSyncing(true);
@@ -453,7 +491,18 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
     const notify = (p: number, m: string, s: string = 'processing') => {
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, progress: p, message: m, status: s as any } : t));
     };
+
+    const PROGRESS_MESSAGES = [
+      "Analisando estrutura geométrica...",
+      "Extraindo camadas de texto...",
+      "Traduzindo com rede neural Azure...",
+      "Reconstruindo layout original...",
+      "Preservando fontes e estilos...",
+      "Finalizando processamento..."
+    ];
+
     try {
+      notify(5, "Iniciando upload para nuvem...");
       const formData = new FormData();
       formData.append("file", file);
       formData.append("targetLang", targetLangName);
@@ -466,7 +515,12 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
       });
       
       const responseData = await response.json();
-      if (!response.ok) throw new Error(responseData.error || "Falha no servidor");
+      if (!response.ok) {
+        // Tratamento de erros específicos vindos do servidor
+        if (response.status === 403) throw new Error(responseData.details || "Limite de quota atingido.");
+        if (response.status === 413) throw new Error("Arquivo muito grande para o plano atual.");
+        throw new Error(responseData.error || "Falha na comunicação com o servidor.");
+      }
       
       const { operationLocation, taskId: azureTaskId, userId: azureUserId } = responseData;
       
@@ -476,11 +530,22 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
       while (status !== "Succeeded" && status !== "Failed" && attempts < 500) {
         await new Promise(r => setTimeout(r, 4000));
         attempts++;
+        
+        // Rotacionar mensagens a cada 2 tentativas
+        const messageIndex = Math.floor(attempts / 2) % PROGRESS_MESSAGES.length;
+        const currentMessage = `Lumina AI: ${PROGRESS_MESSAGES[messageIndex]}`;
+        
         const res = await fetch(`/api/azure/status?url=${encodeURIComponent(operationLocation)}`);
         const result = await res.json();
         status = result.status;
-        if (status === "Running" || status === "NotStarted") notify(40 + (attempts % 40), `Azure AI: Processando...`);
-        if (status === "Failed") throw new Error("Erro na tradução");
+        
+        if (status === "Running" || status === "NotStarted") {
+          // Incremento suave de progresso (40% a 95%)
+          const fakeProgress = Math.min(40 + Math.floor(attempts * 1.5), 95);
+          notify(fakeProgress, currentMessage);
+        }
+        
+        if (status === "Failed") throw new Error("A Azure AI não conseguiu processar este documento.");
         if (status === "Succeeded") {
           metrics = { characters: result.summary?.totalCharacters || 0, pages: result.summary?.totalSuccess || 1 };
           break;
@@ -488,7 +553,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
       }
 
       const finalUrl = `/api/download/${azureUserId}/${azureTaskId}/${encodeURIComponent(file.name)}`;
-      notify(100, "Concluído", 'completed');
+      notify(100, "Documento pronto!", 'completed');
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'completed', resultUrl: finalUrl, progress: 100, metrics } : t));
       await supabase.from('translations').insert([{ 
         id: taskId, user_id: session.user.id, filename: file.name, target_lang: targetLangName, result_url: finalUrl, extension: file.name.split('.').pop()?.toLowerCase(), status: 'completed', metrics 
@@ -553,7 +618,10 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
             </div>
             <div className="hidden sm:block">
               <h2 className="text-xl font-black text-white tracking-tighter leading-none">LUMINA</h2>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-primary font-black mt-1">v4.5.2 - 18/04 19:15 (BUILD FINAL)</p>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-primary font-black mt-1">v1.2.0 - 30/04 06:45 (PROD RELEASE)</p>
+            </div>
+            <div className="sm:hidden">
+              <h2 className="text-lg font-black text-white tracking-tighter leading-none">LUMINA</h2>
             </div>
           </div>
 
@@ -583,7 +651,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                       {profile.characters_used.toLocaleString()} / {profile.quota_limit.toLocaleString()}
                     </span>
                   </div>
-                  <div className="w-32 sm:w-48 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                  <div className="w-20 sm:w-48 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
                     <motion.div 
                       className="h-full bg-primary"
                       animate={{ width: `${Math.min((profile.characters_used / profile.quota_limit) * 100, 100)}%` }}
@@ -619,7 +687,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
           >
             <div className="flex items-center gap-3 mb-6">
               <span className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[10px] font-black text-primary uppercase tracking-widest">
-                Nova Geração v4.5
+                Nova Geração v1.1
               </span>
               <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             </div>
@@ -656,10 +724,10 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
         {/* High-Tech Upload Zone */}
         <motion.div 
           {...getRootProps()}
-          className="gradient-border group mb-20 relative"
+          className="gradient-border group mb-12 md:mb-20 relative"
         >
           <div className={cn(
-            "gradient-border-content min-h-[400px] flex flex-col items-center justify-center gap-8 transition-all relative overflow-hidden",
+            "gradient-border-content min-h-[280px] md:min-h-[400px] flex flex-col items-center justify-center gap-6 md:gap-8 transition-all relative overflow-hidden",
             isDragActive && "bg-primary/5"
           )}>
             <input {...getInputProps()} />
@@ -671,9 +739,9 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
             
             <motion.div 
               animate={isDragActive ? { scale: 1.1 } : {}}
-              className="w-24 h-24 bg-white/5 rounded-[2rem] flex items-center justify-center border border-white/10 group-hover:border-primary/40 group-hover:shadow-2xl group-hover:shadow-primary/20 transition-all duration-500 relative z-10"
+              className="w-16 h-16 md:w-24 md:h-24 bg-white/5 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center border border-white/10 group-hover:border-primary/40 group-hover:shadow-2xl group-hover:shadow-primary/20 transition-all duration-500 relative z-10"
             >
-              <Upload className="w-10 h-10 text-primary" />
+              <Upload className="w-7 h-7 md:w-10 md:h-10 text-primary" />
             </motion.div>
             
             <div className="text-center relative z-10 px-6">
@@ -1081,7 +1149,10 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isRecovering, setIsRecovering] = useState(false);
 
+
   useEffect(() => {
+
+
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -1099,7 +1170,9 @@ export default function App() {
   }
 
   return session ? (
-    <Dashboard session={session} onLogout={() => supabase.auth.signOut()} />
+    <Dashboard session={session} onLogout={() => {
+      supabase.auth.signOut();
+    }} />
   ) : (
     <Login onSession={setSession} />
   );

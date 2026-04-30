@@ -14,6 +14,7 @@ import pdf from "pdf-parse";
 import mammoth from "mammoth";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 // Mapeamento de idiomas para o novo endpoint
 const LANGUAGES_MAP = {
     "Portuguese": "pt",
@@ -21,7 +22,17 @@ const LANGUAGES_MAP = {
     "Chinese": "zh",
     "French": "fr",
     "German": "de",
-    "Spanish": "es"
+    "Spanish": "es",
+    "Italian": "it",
+    "Russian": "ru",
+    "Arabic": "ar",
+    "Korean": "ko",
+    "Hindi": "hi",
+    "Turkish": "tr",
+    "Dutch": "nl",
+    "Indonesian": "id",
+    "Vietnamese": "vi",
+    "Thai": "th"
 };
 // Azure configurations (will be used by the server instead of the browser later)
 const azureKey = process.env.VITE_AZURE_KEY;
@@ -308,10 +319,16 @@ async function startServer() {
     });
     app.get("/api/azure/list-outputs", async (req, res) => {
         try {
+            const authHeader = req.headers.authorization;
+            if (!authHeader)
+                return res.status(401).json({ error: "Não autenticado" });
+            const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+            if (authError || !user)
+                return res.status(401).json({ error: "Sessão inválida" });
             const outputUrl = process.env.VITE_AZURE_STORAGE_OUTPUT_URL;
             const [baseUrl, sas] = outputUrl.split('?');
-            const listUrl = `${baseUrl}?restype=container&comp=list&${sas}`;
-            console.log(`--- Proxy: Sincronizando com Azure Storage ---`);
+            const listUrl = `${baseUrl}?restype=container&comp=list&prefix=${user.id}/&${sas}`;
+            console.log(`--- Proxy: Sincronizando com Azure Storage para usuário ${user.id} ---`);
             const response = await fetch(listUrl);
             if (!response.ok) {
                 console.error(` > Erro Azure (${response.status}): ${response.statusText}`);
@@ -321,7 +338,7 @@ async function startServer() {
             // Regex mais resiliente para capturar nomes capturando case-insensitive e espaços
             const files = xml.match(/<Name>(.*?)<\/Name>/gi) || [];
             const fileNames = files.map(f => f.replace(/<Name>|<\/Name>/gi, ''));
-            console.log(` > Sincronização concluída. ${fileNames.length} blobs encontrados.`);
+            console.log(` > Sincronização concluída. ${fileNames.length} blobs encontrados para o usuário.`);
             res.json({ files: fileNames });
         }
         catch (error) {
@@ -455,7 +472,45 @@ async function startServer() {
             res.setHeader("Expires", "0");
             // Suporte a caracteres especiais no nome do arquivo (importante para smartphones)
             res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(cleanFilename)}"; filename*=UTF-8''${encodeURIComponent(cleanFilename)}`);
-            const arrayBuffer = await downloadResponse.arrayBuffer();
+            let arrayBuffer = await downloadResponse.arrayBuffer();
+            // --- INÍCIO DA LÓGICA DE MARCA D'ÁGUA ---
+            if (cleanFilename.toLowerCase().endsWith('.pdf')) {
+                try {
+                    const { data: profile } = await supabaseAdmin
+                        .from("profiles")
+                        .select("plan_type")
+                        .eq("id", userId)
+                        .single();
+                    const isFreePlan = !profile || profile.plan_type === "free";
+                    if (isFreePlan) {
+                        console.log(` > [WATERMARK] Aplicando marca d'água no PDF para o usuário Free: ${userId}`);
+                        const pdfDoc = await PDFDocument.load(arrayBuffer);
+                        const pages = pdfDoc.getPages();
+                        const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+                        for (const page of pages) {
+                            const { width, height } = page.getSize();
+                            const text = "Lumina PDF Translator";
+                            const textSize = 10;
+                            const textWidth = font.widthOfTextAtSize(text, textSize);
+                            page.drawText(text, {
+                                x: (width - textWidth) / 2,
+                                y: 15,
+                                size: textSize,
+                                font: font,
+                                color: rgb(0.5, 0.5, 0.5), // Cinza
+                                opacity: 0.5
+                            });
+                        }
+                        const pdfBytes = await pdfDoc.save();
+                        arrayBuffer = pdfBytes.buffer; // Usa o novo ArrayBuffer
+                    }
+                }
+                catch (watermarkError) {
+                    console.error(` > [ERRO WATERMARK] Falha ao aplicar marca d'água: ${watermarkError.message}`);
+                    // Em caso de erro na marca d'água, ignora e entrega o original para não quebrar o download
+                }
+            }
+            // --- FIM DA LÓGICA DE MARCA D'ÁGUA ---
             res.send(Buffer.from(arrayBuffer));
         }
         catch (error) {
