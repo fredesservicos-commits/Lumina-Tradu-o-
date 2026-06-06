@@ -8,3 +8,4 @@ coverage/
 set_env.bat
 .env*
 !.env.example
+supabase/
