@@ -606,6 +606,87 @@ async function startServer() {
     }
   });
 
+  // --- ADMIN ROUTES ---
+
+  async function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ error: "Não autenticado" });
+
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (authError || !user) return res.status(401).json({ error: "Sessão inválida" });
+
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.is_admin) return res.status(403).json({ error: "Acesso negado" });
+
+      (req as any).userId = user.id;
+      next();
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+
+  app.get("/api/admin/users", requireAdmin, async (req, res) => {
+    try {
+      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      if (listError) throw listError;
+
+      const { data: profiles, error: profilesError } = await supabaseAdmin
+        .from("profiles")
+        .select("*");
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      const result = users.map(u => ({
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at,
+        profile: profileMap.get(u.id) || null
+      }));
+
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.put("/api/admin/users/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { plan_type, quota_limit, characters_used, files_this_month, is_admin } = req.body;
+
+      const updates: Record<string, any> = {};
+      if (plan_type !== undefined) updates.plan_type = plan_type;
+      if (quota_limit !== undefined) updates.quota_limit = quota_limit;
+      if (characters_used !== undefined) updates.characters_used = characters_used;
+      if (files_this_month !== undefined) updates.files_this_month = files_this_month;
+      if (is_admin !== undefined) updates.is_admin = is_admin;
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: "Nenhum campo para atualizar" });
+      }
+
+      const { error } = await supabaseAdmin
+        .from("profiles")
+        .update(updates)
+        .eq("id", id);
+
+      if (error) throw error;
+
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Vite middleware (Habilitado apenas em desenvolvimento)
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

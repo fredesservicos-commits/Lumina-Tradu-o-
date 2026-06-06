@@ -33,7 +33,8 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
-import { LogOut, User, Mail, Lock, Loader, CreditCard } from 'lucide-react';
+import { LogOut, User, Mail, Lock, Loader, CreditCard, Shield } from 'lucide-react';
+import AdminPanel from './components/AdminPanel';
 import { loadStripe } from '@stripe/stripe-js';
 
 const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51TMeI1JRF8C7GtHgznfR4kOLLcpyv9zDTeWtnlhoBHJt02YF3okwL8uwjzbdR3FcGWAtTsctzAkcD8XyihzSMUlR009gBxvdkU';
@@ -333,9 +334,10 @@ interface UserProfile {
   characters_used: number;
   quota_limit: number;
   files_this_month: number;
+  is_admin?: boolean;
 }
 
-function Dashboard({ session, onLogout }: { session: Session; onLogout: () => void }) {
+function Dashboard({ session, onLogout, onAdmin }: { session: Session; onLogout: () => void; onAdmin?: () => void }) {
   const [tasks, setTasks] = useState<TranslationTask[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedLang, setSelectedLang] = useState("Portuguese");
@@ -668,6 +670,15 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
                 <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest">Sessão Ativa</p>
                 <p className="text-xs font-bold text-slate-200">{session.user.email?.split('@')[0]}</p>
               </div>
+              {profile?.is_admin && (
+                <button 
+                  onClick={onAdmin} 
+                  className="w-10 h-10 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all border border-white/5 flex items-center justify-center group"
+                  title="Painel Admin"
+                >
+                  <Shield size={18} className="group-hover:scale-110 transition-transform" />
+                </button>
+              )}
               <button 
                 onClick={onLogout} 
                 className="w-10 h-10 bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-xl transition-all border border-white/5 flex items-center justify-center group"
@@ -1148,6 +1159,7 @@ const UpdatePassword = ({ onSuccess, onCancel }: { onSuccess: () => void; onCanc
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
 
   useEffect(() => {
@@ -1169,11 +1181,24 @@ export default function App() {
     return <UpdatePassword onSuccess={() => setIsRecovering(false)} onCancel={() => setIsRecovering(false)} />;
   }
 
-  return session ? (
-    <Dashboard session={session} onLogout={() => {
-      supabase.auth.signOut();
-    }} />
-  ) : (
-    <Login onSession={setSession} />
+  if (!session) {
+    return <Login onSession={setSession} />;
+  }
+
+  if (showAdmin) {
+    return (
+      <AdminPanel
+        accessToken={session.access_token}
+        onBack={() => setShowAdmin(false)}
+      />
+    );
+  }
+
+  return (
+    <Dashboard
+      session={session}
+      onLogout={() => { supabase.auth.signOut(); }}
+      onAdmin={() => setShowAdmin(true)}
+    />
   );
 }
